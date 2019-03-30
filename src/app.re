@@ -5,7 +5,7 @@ let make = (~message, _children) => {
   render: _self =>
     <div className="App">
       <div className="App-header">
-        <img src=logo className="App-logo" alt="logo" />
+        <img src="it's a logo" className="App-logo" alt="logo" />
         <h2> (ReasonReact.string(message)) </h2>
       </div>
       <p className="App-intro">
