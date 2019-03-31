@@ -1,59 +1,27 @@
-type t =
-  | UniversityOfMinnesota
-  | AirportMAC
-  | Other
-  | PriorLake
-  | ScottCounty
-  | MetroTransitMetCouncil
-  | SouthWestTransit
-  | MetroTransit
-  | MinnesotaValley
-  | Plymouth
-  | MetCouncil
-  | MapleGrove;
+type providerId = string;
 
-let to_int =
-  fun
-  | UniversityOfMinnesota => 1
-  | AirportMAC => 2
-  | Other => 3
-  | PriorLake => 4
-  | ScottCounty => 5
-  | MetroTransitMetCouncil => 6
-  | SouthWestTransit => 7
-  | MetroTransit => 8
-  | MinnesotaValley => 9
-  | Plymouth => 10
-  | MetCouncil => 11
-  | MapleGrove => 12;
+type providerName = string;
 
-let of_int =
-  fun
-  | 1 => Some(UniversityOfMinnesota)
-  | 2 => Some(AirportMAC)
-  | 3 => Some(Other)
-  | 4 => Some(PriorLake)
-  | 5 => Some(ScottCounty)
-  | 6 => Some(MetroTransitMetCouncil)
-  | 7 => Some(SouthWestTransit)
-  | 8 => Some(MetroTransit)
-  | 9 => Some(MinnesotaValley)
-  | 10 => Some(Plymouth)
-  | 11 => Some(MetCouncil)
-  | 12 => Some(MapleGrove)
-  | _ => None;
+type t = {
+  id: providerId,
+  name: providerName,
+};
 
-let to_string =
-  fun
-  | UniversityOfMinnesota => "University of Minnesota"
-  | AirportMAC => "Airport (MAC)"
-  | Other => "Other"
-  | PriorLake => "Prior Lake"
-  | ScottCounty => "Scott County"
-  | MetroTransitMetCouncil => "Metro Transit/Met Council"
-  | SouthWestTransit => "SouthWest Transit"
-  | MetroTransit => "Metro Transit"
-  | MinnesotaValley => "Minnesota Valley"
-  | Plymouth => "Plymouth"
-  | MetCouncil => "Met Council"
-  | MapleGrove => "Maple Grove";
+let providerIdKey = "Value";
+
+let providerNameKey = "Text";
+
+let decodeProvider = str =>
+  Json.Decode.{id: str |> field(providerIdKey, string), name: str |> field(providerNameKey, string)};
+
+let of_json = str => str |> Json.Decode.list(decodeProvider);
+
+let encodeProvider = p => {
+  open! Json.Encode;
+  object_([(providerIdKey, string(p.id)), (providerNameKey, string(p.name))]);
+};
+
+let to_json = pList => {
+  open! Json.Encode;
+  pList |> list(encodeProvider);
+};

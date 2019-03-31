@@ -17,6 +17,7 @@
     "license": "MIT",
     "dependencies": {
         "@glennsl/bs-jest": "^0.4.8",
+        "@glennsl/bs-json": "^3.0.0",
         "@jsiebern/bs-material-ui": "^1.1.0",
         "@jsiebern/bs-material-ui-ppx": "^1.0.4",
         "@material-ui/core": "^3.9.2",

@@ -2,10 +2,11 @@
     "name": "metrotransit",
     "sources": ["src"],
     "bs-dependencies": [
-        "reason-react",
         "@glennsl/bs-jest",
+        "@glennsl/bs-json",
+        "@jsiebern/bs-material-ui",
         "bs-fetch",
-        "@jsiebern/bs-material-ui"
+        "reason-react"
     ],
     "reason": {
         "react-jsx": 2
