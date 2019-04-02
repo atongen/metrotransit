@@ -14,14 +14,9 @@ let providerNameKey = "Text";
 let decodeProvider = str =>
   Json.Decode.{id: str |> field(providerIdKey, string), name: str |> field(providerNameKey, string)};
 
-let of_json = str => str |> Json.Decode.list(decodeProvider);
+let encodeProvider = p =>
+  Json.Encode.(object_([(providerNameKey, string(p.name)), (providerIdKey, string(p.id))]));
 
-let encodeProvider = p => {
-  open! Json.Encode;
-  object_([(providerIdKey, string(p.id)), (providerNameKey, string(p.name))]);
-};
+let ofJson = str => Util.parseJsonList(str, decodeProvider);
 
-let to_json = pList => {
-  open! Json.Encode;
-  pList |> list(encodeProvider);
-};
+let toJson = pList => Util.encodeJsonList(pList, encodeProvider);

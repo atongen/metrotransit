@@ -1,6 +1,14 @@
 {
     "name": "metrotransit",
-    "sources": ["src"],
+    "sources": [
+        {
+            "dir": "src"
+        },
+        {
+            "dir": "__tests__",
+            "type": "dev"
+        }
+    ],
     "bs-dependencies": [
         "@glennsl/bs-jest",
         "@glennsl/bs-json",
