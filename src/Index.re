@@ -16,8 +16,7 @@ let content =
       <CssBaseline>
         <Paper style=paperStyle>
           <Typography variant=`H1> (ReasonReact.string("Metrotransit")) </Typography>
-          <Typography variant=`Subtitle1> (ReasonReact.string("Something here")) </Typography>
-          <Typography variant=`Body1> (ReasonReact.string("This is the body content")) </Typography>
+          <App />
         </Paper>
       </CssBaseline>
     )
