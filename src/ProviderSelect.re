@@ -1,3 +1,5 @@
+open Belt;
+
 open Belt.Result;
 
 let url = "https://svc.metrotransit.org/nextrip/providers?format=json";
@@ -16,12 +18,10 @@ type action =
 let component = ReasonReact.reducerComponent("ProviderSelect");
 
 let menuItems = providers =>
-  List.map(
-    (provider: Provider.t) =>
-      <MaterialUi.MenuItem key=provider.id value=(`String(provider.id))>
-        (ReasonReact.string(provider.name))
-      </MaterialUi.MenuItem>,
-    providers,
+  List.map(providers, (provider: Provider.t) =>
+    <MaterialUi.MenuItem key=provider.id value=(`String(provider.id))>
+      (ReasonReact.string(provider.name))
+    </MaterialUi.MenuItem>
   );
 
 let make = (~selected, ~setProvider, _childern) => {
