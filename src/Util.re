@@ -11,3 +11,7 @@ let parseJsonList = (str, decoder) =>
   };
 
 let encodeJsonList = (l, encoder) => Json.(l |> Encode.list(encoder) |> stringify);
+
+let fetchUrl = url => Js.Promise.(Fetch.fetch(url) |> then_(Fetch.Response.text));
+
+let getCachedUrl = url => Cache.getSetExpiringItem(url, () => fetchUrl(url), 3600.0);

@@ -1,12 +1,13 @@
-let valueKey = key => key ++ "-value";
+let valueKey = cacheKey => cacheKey ++ "-value";
 
-let expirationKey = key => key ++ "-expires";
+let expirationKey = cacheKey => cacheKey ++ "-expires";
 
 let setExpiringItemAsOf = (cacheKey, value, expiresIn, asOf) => {
-  let expiration = string_of_float(asOf +. expiresIn);
+  let expiration = Js.Float.toString(asOf +. expiresIn);
   open Dom.Storage;
   localStorage |> setItem(expirationKey(cacheKey), expiration);
   localStorage |> setItem(valueKey(cacheKey), value);
+  value;
 };
 
 let setExpiringItem = (key, value, expiresIn) => setExpiringItemAsOf(key, value, expiresIn, Js.Date.now());
@@ -27,17 +28,10 @@ let getExpiringItemAsOf = (cacheKey, asOf) =>
 
 let getExpiringItem = cacheKey => getExpiringItemAsOf(cacheKey, Js.Date.now());
 
-/* make this a promise so we can use it seamlessly with Fetch */
 let getSetExpiringItemAsOf = (cacheKey, f, expiresIn, asOf) =>
   switch (getExpiringItemAsOf(cacheKey, asOf)) {
-  | Some(value) => Some(value)
-  | None =>
-    switch (f()) {
-    | Some(value) =>
-      setExpiringItemAsOf(cacheKey, value, expiresIn, asOf);
-      Some(value);
-    | None => None
-    }
+  | Some(value) => Js.Promise.resolve(value)
+  | None => Js.Promise.(f() |> then_(value => setExpiringItemAsOf(cacheKey, value, expiresIn, asOf) |> resolve))
   };
 
 let getSetExpiringItem = (cacheKey, f, expiresIn) => getSetExpiringItemAsOf(cacheKey, f, expiresIn, Js.Date.now());

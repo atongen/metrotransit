@@ -1,4 +1,5 @@
 open Belt;
+
 open Belt.Result;
 
 let url = "https://svc.metrotransit.org/NexTrip/Routes?format=json";
@@ -8,9 +9,6 @@ type state =
   | Loading
   | Failure(string)
   | Success(list(Route.t));
-
-let fetchRoutes = () =>
-  Js.Promise.(Fetch.fetch(url) |> then_(Fetch.Response.text) |> then_(jsonStr => Route.ofJson(jsonStr) |> resolve));
 
 type action =
   | LoadRoutes
@@ -37,7 +35,6 @@ let make = (~selected, ~provider, ~setRoute, _childern) => {
     let route = ReactEvent.Form.target(evt)##value;
     setRoute(route);
   };
-
   {
     ...component,
     initialState: () => NotAsked,
@@ -49,7 +46,8 @@ let make = (~selected, ~provider, ~setRoute, _childern) => {
           (
             self =>
               Js.Promise.(
-                fetchRoutes()
+                Util.getCachedUrl(url)
+                |> then_(jsonStr => Route.ofJson(jsonStr) |> resolve)
                 |> then_(result =>
                      switch (result) {
                      | Ok(routes) => resolve(self.send(LoadedRoutes(routes)))
