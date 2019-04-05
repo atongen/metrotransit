@@ -2,9 +2,6 @@ open Belt;
 
 open Belt.Result;
 
-let directionUrl = (routeId: Route.routeId) =>
-  Printf.sprintf("https://svc.metrotransit.org/NexTrip/Directions/%s?format=json", routeId);
-
 type state =
   | NotAsked
   | Loading
@@ -30,7 +27,6 @@ let make = (~selected, ~route, ~setDirection, _childern) => {
     let direction = ReactEvent.Form.target(evt)##value;
     setDirection(direction);
   };
-  let url = directionUrl(route);
   {
     ...component,
     initialState: () => NotAsked,
@@ -42,7 +38,7 @@ let make = (~selected, ~route, ~setDirection, _childern) => {
           (
             self =>
               Js.Promise.(
-                Util.getCachedUrl(url)
+                Util.getCachedUrl(ApiUri.(toString(DirectionsUri(route))))
                 |> then_(jsonStr => Direction.ofJson(jsonStr) |> resolve)
                 |> then_(result =>
                      switch (result) {

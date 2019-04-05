@@ -2,8 +2,6 @@ open Belt;
 
 open Belt.Result;
 
-let url = "https://svc.metrotransit.org/nextrip/providers?format=json";
-
 type state =
   | NotAsked
   | Loading
@@ -40,7 +38,7 @@ let make = (~selected, ~setProvider, _childern) => {
           (
             self =>
               Js.Promise.(
-                Util.getCachedUrl(url)
+                Util.getCachedUrl(ApiUri.(toString(ProvidersUri)))
                 |> then_(jsonStr => Provider.ofJson(jsonStr) |> resolve)
                 |> then_(result =>
                      switch (result) {

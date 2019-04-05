@@ -2,8 +2,6 @@ open Belt;
 
 open Belt.Result;
 
-let url = "https://svc.metrotransit.org/NexTrip/Routes?format=json";
-
 type state =
   | NotAsked
   | Loading
@@ -46,7 +44,7 @@ let make = (~selected, ~provider, ~setRoute, _childern) => {
           (
             self =>
               Js.Promise.(
-                Util.getCachedUrl(url)
+                Util.getCachedUrl(ApiUri.(toString(RoutesUri)))
                 |> then_(jsonStr => Route.ofJson(jsonStr) |> resolve)
                 |> then_(result =>
                      switch (result) {
