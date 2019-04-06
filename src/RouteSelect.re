@@ -15,10 +15,10 @@ type action =
 
 let component = ReasonReact.reducerComponent("RouteSelect");
 
-let menuItems = (routes, provider) => {
+let menuItems = (routes, provider: option(Provider.t)) => {
   let myRoutes =
     switch (provider) {
-    | Some(p) => List.keep(routes, (route: Route.t) => route.providerId == p)
+    | Some(p) => List.keep(routes, (route: Route.t) => route.providerId == p.id)
     | None => routes
     };
   List.map(myRoutes, (route: Route.t) =>
@@ -28,57 +28,56 @@ let menuItems = (routes, provider) => {
   );
 };
 
-let make = (~selected, ~provider, ~setRoute, _childern) => {
-  let routeChange = (evt, _el) => {
-    let route = ReactEvent.Form.target(evt)##value;
-    setRoute(route);
-  };
-  {
-    ...component,
-    initialState: () => NotAsked,
-    reducer: (action, _state) =>
-      switch (action) {
-      | LoadRoutes =>
-        ReasonReact.UpdateWithSideEffects(
-          Loading,
-          (
-            self =>
-              Js.Promise.(
-                Util.getCachedUrl(ApiUri.(toString(RoutesUri)))
-                |> then_(jsonStr => Route.ofJson(jsonStr) |> resolve)
-                |> then_(result =>
-                     switch (result) {
-                     | Ok(routes) => resolve(self.send(LoadedRoutes(routes)))
-                     | Error(err) => resolve(self.send(LoadRoutesFailed(err)))
-                     }
-                   )
-                |> ignore
-              )
-          ),
-        )
-      | LoadedRoutes(routes) => ReasonReact.Update(Success(routes))
-      | LoadRoutesFailed(err) => ReasonReact.Update(Failure(err))
-      },
-    didMount: self => self.send(LoadRoutes),
-    render: self =>
-      switch (self.state) {
-      | NotAsked => ReasonReact.null
-      | Loading => <div> (ReasonReact.string("Loading routes...")) </div>
-      | Failure(err) => <div> (ReasonReact.string("Something went wrong: " ++ err)) </div>
-      | Success(routes) =>
-        let value =
-          switch (selected) {
-          | Some(s) => `String(s)
-          | None => `String("")
-          };
-        MaterialUi.(
-          <form autoComplete="off">
-            <FormControl>
-              <InputLabel> (ReasonReact.string("Route")) </InputLabel>
-              <Select value onChange=routeChange> (menuItems(routes, provider)) </Select>
-            </FormControl>
-          </form>
-        );
-      },
-  };
+let make = (~selected: option(Route.t), ~provider: option(Provider.t), ~setRoute, _childern) => {
+  ...component,
+  initialState: () => NotAsked,
+  reducer: (action, _state) =>
+    switch (action) {
+    | LoadRoutes =>
+      ReasonReact.UpdateWithSideEffects(
+        Loading,
+        (
+          self =>
+            Js.Promise.(
+              Util.getCachedUrl(ApiUri.(toString(RoutesUri)))
+              |> then_(jsonStr => Route.ofJson(jsonStr) |> resolve)
+              |> then_(result =>
+                   switch (result) {
+                   | Ok(routes) => resolve(self.send(LoadedRoutes(routes)))
+                   | Error(err) => resolve(self.send(LoadRoutesFailed(err)))
+                   }
+                 )
+              |> ignore
+            )
+        ),
+      )
+    | LoadedRoutes(routes) => ReasonReact.Update(Success(routes))
+    | LoadRoutesFailed(err) => ReasonReact.Update(Failure(err))
+    },
+  didMount: self => self.send(LoadRoutes),
+  render: self =>
+    switch (self.state) {
+    | NotAsked => ReasonReact.null
+    | Loading => <div> (ReasonReact.string("Loading routes...")) </div>
+    | Failure(err) => <div> (ReasonReact.string("Something went wrong: " ++ err)) </div>
+    | Success(routes) =>
+      let routeChange = (evt, _el) => {
+        let routeId = ReactEvent.Form.target(evt)##value;
+        let route = List.getBy(routes, route => route.id == routeId);
+        setRoute(route);
+      };
+      let value =
+        switch (selected) {
+        | Some(route) => `String(route.id)
+        | None => `String("")
+        };
+      MaterialUi.(
+        <form autoComplete="off">
+          <FormControl>
+            <InputLabel> (ReasonReact.string("Route")) </InputLabel>
+            <Select value onChange=routeChange> (menuItems(routes, provider)) </Select>
+          </FormControl>
+        </form>
+      );
+    },
 };

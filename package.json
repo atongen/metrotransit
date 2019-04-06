@@ -9,7 +9,7 @@
         "start": "bsb -make-world -w",
         "clean": "bsb -clean-world",
         "test": "jest",
-        "webpack": "webpack -w",
+        "webpack": "webpack",
         "webpack:production": "NODE_ENV=production webpack"
     },
     "keywords": [],
