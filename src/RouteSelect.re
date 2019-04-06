@@ -66,16 +66,16 @@ let make = (~selected, ~provider, ~setRoute, _childern) => {
       | Loading => <div> (ReasonReact.string("Loading routes...")) </div>
       | Failure(err) => <div> (ReasonReact.string("Something went wrong: " ++ err)) </div>
       | Success(routes) =>
-        let selectedStr =
+        let value =
           switch (selected) {
-          | Some(s) => s
-          | None => ""
+          | Some(s) => `String(s)
+          | None => `String("")
           };
         MaterialUi.(
           <form autoComplete="off">
             <FormControl>
               <InputLabel> (ReasonReact.string("Route")) </InputLabel>
-              <Select value=(`String(selectedStr)) onChange=routeChange> (menuItems(routes, provider)) </Select>
+              <Select value onChange=routeChange> (menuItems(routes, provider)) </Select>
             </FormControl>
           </form>
         );

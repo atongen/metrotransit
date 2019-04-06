@@ -25,4 +25,4 @@ let path =
   | TimepointDeparturesUri(routeId, directionId, stopId) => Printf.sprintf("/%s/%s/%s", routeId, directionId, stopId)
   | VehicleLocationsUri(routeId) => Printf.sprintf("/vehiclelocations/%s", routeId);
 
-let toString = x => Printf.sprintf("%s://%s%s%s%s", protocol, domain, basePath, path(x), params);
+let toString = x => Printf.sprintf("%s://%s%s%s?%s", protocol, domain, basePath, path(x), params);

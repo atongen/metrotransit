@@ -15,8 +15,10 @@ type action =
 
 let component = ReasonReact.reducerComponent("ProviderSelect");
 
+let allProvider: Provider.t = {id: "all", name: "All"};
+
 let menuItems = providers =>
-  List.map(providers, (provider: Provider.t) =>
+  List.map(List.add(providers, allProvider), (provider: Provider.t) =>
     <MaterialUi.MenuItem key=provider.id value=(`String(provider.id))>
       (ReasonReact.string(provider.name))
     </MaterialUi.MenuItem>
@@ -25,7 +27,13 @@ let menuItems = providers =>
 let make = (~selected, ~setProvider, _childern) => {
   let providerChange = (evt, _el) => {
     let provider = ReactEvent.Form.target(evt)##value;
-    setProvider(provider);
+    let maybeProvider =
+      if (provider == "" || provider == "all") {
+        None;
+      } else {
+        Some(provider);
+      };
+    setProvider(maybeProvider);
   };
   {
     ...component,
@@ -60,16 +68,18 @@ let make = (~selected, ~setProvider, _childern) => {
       | Loading => <div> (ReasonReact.string("Loading providers...")) </div>
       | Failure(err) => <div> (ReasonReact.string("Something went wrong: " ++ err)) </div>
       | Success(providers) =>
-        let selectedStr =
+        let value =
           switch (selected) {
-          | Some(s) => s
-          | None => ""
+          | Some(s) => `String(s)
+          | None => `String("all")
           };
         MaterialUi.(
           <form autoComplete="off">
             <FormControl>
               <InputLabel> (ReasonReact.string("Provider")) </InputLabel>
-              <Select value=(`String(selectedStr)) onChange=providerChange> (menuItems(providers)) </Select>
+              <Select value onChange=providerChange>
+                (menuItems(providers))
+              </Select>
             </FormControl>
           </form>
         );

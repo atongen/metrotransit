@@ -39,6 +39,8 @@ let departureVehicleLatitudeKey = "VehicleLatitude";
 
 let departureVehicleLongitudeKey = "VehicleLongitude";
 
+let df = Json.Decode.float;
+
 let decodeDeparture = str =>
   Json.Decode.{
     actual: str |> field(departureActualKey, bool),
@@ -51,9 +53,11 @@ let decodeDeparture = str =>
     directionName: str |> field(departureDirectionNameKey, string),
     terminal: str |> field(departureTerminalKey, string),
     vehicleHeading: str |> field(departureVehicleHeadingKey, int),
-    vehicleLatitude: str |> field(departureVehicleLatitudeKey, float),
-    vehicleLongitude: str |> field(departureVehicleLongitudeKey, float),
+    vehicleLatitude: str |> field(departureVehicleLatitudeKey, df),
+    vehicleLongitude: str |> field(departureVehicleLongitudeKey, df),
   };
+
+let ef = Json.Encode.float;
 
 let encodeDeparture = d =>
   Json.Encode.(
@@ -68,8 +72,8 @@ let encodeDeparture = d =>
       (departureDirectionNameKey, string(d.directionName)),
       (departureTerminalKey, string(d.terminal)),
       (departureVehicleHeadingKey, int(d.vehicleHeading)),
-      (departureVehicleLatitudeKey, float(d.vehicleLatitude)),
-      (departureVehicleLongitudeKey, float(d.vehicleLongitude)),
+      (departureVehicleLatitudeKey, ef(d.vehicleLatitude)),
+      (departureVehicleLongitudeKey, ef(d.vehicleLongitude)),
     ])
   );
 

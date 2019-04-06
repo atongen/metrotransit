@@ -31,6 +31,8 @@ let locationVehicleLatitudeKey = "VehicleLatitude";
 
 let locationVehicleLongitudeKey = "VehicleLongitude";
 
+let df = Json.Decode.float;
+
 let decodeLocation = str =>
   Json.Decode.{
     bearing: str |> field(locationBearingKey, int),
@@ -39,11 +41,13 @@ let decodeLocation = str =>
     time: str |> field(locationTimeKey, string),
     odometer: str |> field(locationOdometerKey, int),
     routeId: str |> field(locationRouteIdKey, string),
-    speed: str |> field(locationSpeedKey, float),
+    speed: str |> field(locationSpeedKey, df),
     terminal: str |> field(locationTerminalKey, string),
-    vehicleLatitude: str |> field(locationVehicleLatitudeKey, float),
-    vehicleLongitude: str |> field(locationVehicleLongitudeKey, float),
+    vehicleLatitude: str |> field(locationVehicleLatitudeKey, df),
+    vehicleLongitude: str |> field(locationVehicleLongitudeKey, df),
   };
+
+let ef = Json.Encode.float;
 
 let encodeLocation = l =>
   Json.Encode.(
@@ -54,10 +58,10 @@ let encodeLocation = l =>
       (locationTimeKey, string(l.time)),
       (locationOdometerKey, int(l.odometer)),
       (locationRouteIdKey, string(l.routeId)),
-      (locationSpeedKey, float(l.speed)),
+      (locationSpeedKey, ef(l.speed)),
       (locationTerminalKey, string(l.terminal)),
-      (locationVehicleLatitudeKey, float(l.vehicleLatitude)),
-      (locationVehicleLongitudeKey, float(l.vehicleLongitude)),
+      (locationVehicleLatitudeKey, ef(l.vehicleLatitude)),
+      (locationVehicleLongitudeKey, ef(l.vehicleLongitude)),
     ])
   );
 

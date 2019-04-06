@@ -1,5 +1,19 @@
 {
     "name": "metrotransit",
+    "bsc-flags": [
+        "-bs-no-version-header",
+        "-bs-super-errors"
+    ],
+    "reason": {
+        "react-jsx": 2
+    },
+    "bs-dependencies": [
+        "@glennsl/bs-jest",
+        "@glennsl/bs-json",
+        "@jsiebern/bs-material-ui",
+        "bs-fetch",
+        "reason-react"
+    ],
     "sources": [
         {
             "dir": "src"
@@ -9,22 +23,11 @@
             "type": "dev"
         }
     ],
-    "bs-dependencies": [
-        "@glennsl/bs-jest",
-        "@glennsl/bs-json",
-        "@jsiebern/bs-material-ui",
-        "bs-fetch",
-        "reason-react"
-    ],
-    "reason": {
-        "react-jsx": 2
-    },
-    "refmt": 3,
     "package-specs": {
         "module": "commonjs",
         "in-source": false
     },
-    "suffix": ".bs.js",
+    "refmt": 3,
     "ppx-flags": [
         "./node_modules/@jsiebern/bs-material-ui-ppx/ppx"
     ]

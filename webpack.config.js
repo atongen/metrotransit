@@ -13,7 +13,7 @@ module.exports = {
         new ManifestPlugin({})
     ],
     entry: {
-        Index: "./lib/js/src/Index.bs.js",
+        Index: "./lib/js/src/Index.js",
     },
     mode: isProd ? "production" : "development",
     output: {

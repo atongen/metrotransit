@@ -18,7 +18,7 @@ let component = ReasonReact.reducerComponent("DirectionSelect");
 let menuItems = directions =>
   List.map(directions, (direction: Direction.t) =>
     <MaterialUi.MenuItem key=direction.id value=(`String(direction.id))>
-      (ReasonReact.string(direction.name))
+      (ReasonReact.string(Util.capitalize(direction.name)))
     </MaterialUi.MenuItem>
   );
 
@@ -60,16 +60,16 @@ let make = (~selected, ~route, ~setDirection, _childern) => {
       | Loading => <div> (ReasonReact.string("Loading directions...")) </div>
       | Failure(err) => <div> (ReasonReact.string("Something went wrong: " ++ err)) </div>
       | Success(directions) =>
-        let selectedStr =
+        let value =
           switch (selected) {
-          | Some(s) => s
-          | None => ""
+          | Some(s) => `String(s)
+          | None => `String("")
           };
         MaterialUi.(
           <form autoComplete="off">
             <FormControl>
               <InputLabel> (ReasonReact.string("Direction")) </InputLabel>
-              <Select value=(`String(selectedStr)) onChange=directionChange> (menuItems(directions)) </Select>
+              <Select value onChange=directionChange> (menuItems(directions)) </Select>
             </FormControl>
           </form>
         );
