@@ -65,13 +65,13 @@ let make = (~selected: option(Direction.t), ~route: Route.t, ~setDirection, _chi
         | Some(direction) => `String(direction.id)
         | None => `String("")
         };
-      MaterialUi.(
-        <form autoComplete="off">
+      <form autoComplete="off">
+        MaterialUi.(
           <FormControl>
             <InputLabel> (ReasonReact.string("Direction")) </InputLabel>
             <Select value onChange=directionChange> (menuItems(directions)) </Select>
           </FormControl>
-        </form>
-      );
+        )
+      </form>;
     },
 };

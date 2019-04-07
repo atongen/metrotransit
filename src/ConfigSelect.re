@@ -1,3 +1,5 @@
+open Belt;
+
 type action =
   | SetProvider(option(Provider.t))
   | SetRoute(option(Route.t))
@@ -11,16 +13,37 @@ type state = {
   stop: option(Stop.t),
 };
 
-let component = ReasonReact.reducerComponent("App");
+let component = ReasonReact.reducerComponent("ConfigSelect");
 
-let make = _children => {
+let displayName = (maybeRoute: option(Route.t), maybeDirection: option(Direction.t), maybeStop: option(Stop.t)) =>
+  switch (maybeRoute, maybeDirection, maybeStop) {
+  | (Some(route), Some(direction), Some(stop)) =>
+    Printf.sprintf("%s %s %s", route.name, direction.name, stop.name)
+  | _ => ""
+  };
+
+let menuItems = configs =>
+  List.map(configs, (config: Config.t) =>
+    <MaterialUi.MenuItem key=config.id value=(`String(config.id))>
+      (ReasonReact.string(config.name))
+    </MaterialUi.MenuItem>
+  );
+
+let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _children) => {
   ...component,
   reducer: (action, state) =>
     switch (action) {
     | SetProvider(provider) => ReasonReact.Update({provider, route: None, direction: None, stop: None})
     | SetRoute(route) => ReasonReact.Update({...state, route, direction: None, stop: None})
     | SetDirection(direction) => ReasonReact.Update({...state, direction, stop: None})
-    | SetStop(stop) => ReasonReact.Update({...state, stop})
+    | SetStop(stop) =>
+      let newState = {...state, stop};
+      let maybeConfig = Config.make(newState.route, newState.direction, newState.stop);
+      switch(maybeConfig) {
+      | Some(config) => setConfig(config)
+      | None => ()
+      }
+      ReasonReact.Update(newState);
     },
   initialState: () => {provider: None, route: None, direction: None, stop: None},
   render: self => {
@@ -35,18 +58,49 @@ let make = _children => {
       };
     let stopSelect =
       switch (self.state.route, self.state.direction) {
-      | (Some(route), Some(direction)) => <StopSelect selected=self.state.stop route direction setStop />
+      | (Some(r), Some(d)) => <StopSelect selected=self.state.stop route=r direction=d setStop />
       | _ => ReasonReact.null
       };
     let expandIcon = MaterialUi.(<Icon> (ReasonReact.string("expand_more")) </Icon>);
+    let configChange = (evt, _el) => {
+      let configId = ReactEvent.Form.target(evt)##value;
+      let maybeConfig = List.getBy(configs, config => config.id == configId);
+      switch (maybeConfig) {
+      | Some(config) => setConfig(config)
+      | None => ()
+      };
+    };
+    let configSelect =
+      if (List.length(configs) > 0) {
+        let value =
+          switch (selected) {
+          | Some(config) => `String(config.id)
+          | None => `String("")
+          };
+        <form autoComplete="off">
+          MaterialUi.(
+            <FormControl>
+              <InputLabel> (ReasonReact.string("My Stop")) </InputLabel>
+              <Select value onChange=configChange> (menuItems(configs)) </Select>
+            </FormControl>
+          )
+        </form>;
+      } else {
+        ReasonReact.null;
+      };
     MaterialUi.(
       <ExpansionPanel>
         <ExpansionPanelSummary expandIcon>
-          <div> <Typography> (ReasonReact.string("Config")) </Typography> </div>
-          <div> <Typography> (ReasonReact.string("xerces")) </Typography> </div>
+          <div> <Typography> (ReasonReact.string("Select Stop")) </Typography> </div>
+          <div>
+            <Typography>
+              (ReasonReact.string(displayName(self.state.route, self.state.direction, self.state.stop)))
+            </Typography>
+          </div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
           <div>
+            configSelect
             <ProviderSelect selected=self.state.provider setProvider />
             <RouteSelect selected=self.state.route provider=self.state.provider setRoute />
             directionSelect

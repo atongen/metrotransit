@@ -67,13 +67,13 @@ let make = (~selected: option(Provider.t), ~setProvider, _childern) => {
         | Some(provider) => `String(provider.id)
         | None => `String("all")
         };
-      MaterialUi.(
-        <form autoComplete="off">
+      <form autoComplete="off">
+        MaterialUi.(
           <FormControl>
             <InputLabel> (ReasonReact.string("Provider")) </InputLabel>
             <Select value onChange=providerChange> (menuItems(providers)) </Select>
           </FormControl>
-        </form>
-      );
+        )
+      </form>;
     },
 };

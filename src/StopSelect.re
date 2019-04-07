@@ -63,13 +63,13 @@ let make = (~selected: option(Stop.t), ~route: Route.t, ~direction: Direction.t,
         | Some(stop) => `String(stop.id)
         | None => `String("")
         };
-      MaterialUi.(
-        <form autoComplete="off">
+      <form autoComplete="off">
+        MaterialUi.(
           <FormControl>
             <InputLabel> (ReasonReact.string("Stop")) </InputLabel>
             <Select value onChange=stopChange> (menuItems(stops)) </Select>
           </FormControl>
-        </form>
-      );
+        )
+      </form>;
     },
 };

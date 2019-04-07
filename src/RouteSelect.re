@@ -71,13 +71,13 @@ let make = (~selected: option(Route.t), ~provider: option(Provider.t), ~setRoute
         | Some(route) => `String(route.id)
         | None => `String("")
         };
-      MaterialUi.(
-        <form autoComplete="off">
+      <form autoComplete="off">
+        MaterialUi.(
           <FormControl>
             <InputLabel> (ReasonReact.string("Route")) </InputLabel>
             <Select value onChange=routeChange> (menuItems(routes, provider)) </Select>
           </FormControl>
-        </form>
-      );
+        )
+      </form>;
     },
 };
