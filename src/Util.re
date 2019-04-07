@@ -12,7 +12,17 @@ let parseJsonList = (str, decoder) =>
   | Json.Decode.DecodeError(e) => Error("decode error: " ++ squeeze(e))
   };
 
+let unsafeParseJson = (str, decoder) => Json.(parseOrRaise(str) |> decoder);
+
+let parseJson = (str, decoder) =>
+  try (Ok(unsafeParseJson(str, decoder))) {
+  | Json.ParseError(e) => Error("parse error: " ++ e)
+  | Json.Decode.DecodeError(e) => Error("decode error: " ++ squeeze(e))
+  };
+
 let encodeJsonList = (l, encoder) => Json.(l |> Encode.list(encoder) |> stringify);
+
+let encodeJson = (j, encoder) => Json.(j |> encoder |> stringify);
 
 let fetchUrl = url => Js.Promise.(Fetch.fetch(url) |> then_(Fetch.Response.text));
 

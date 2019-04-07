@@ -23,4 +23,40 @@ let make = (maybeRoute: option(Route.t), maybeDirection: option(Direction.t), ma
   | _ => None
   };
 
-let compare = (c0: t, c1: t) => Pervasives.compare(c0.id, c1.id);
+let configIdKey = "i";
+
+let configNameKey = "n";
+
+let configRouteKey = "r";
+
+let configDirectionKey = "d";
+
+let configStopKey = "s";
+
+let decodeConfig = str =>
+  Json.Decode.{
+    id: str |> field(configIdKey, string),
+    name: str |> field(configNameKey, string),
+    route: str |> field(configRouteKey, string),
+    direction: str |> field(configDirectionKey, string),
+    stop: str |> field(configStopKey, string),
+  };
+
+let encodeConfig = c =>
+  Json.Encode.(
+    object_([
+      (configIdKey, string(c.id)),
+      (configNameKey, string(c.name)),
+      (configRouteKey, string(c.route)),
+      (configDirectionKey, string(c.direction)),
+      (configStopKey, string(c.stop)),
+    ])
+  );
+
+let ofJson = str => Util.parseJson(str, decodeConfig);
+
+let toJson = c => Util.encodeJson(c, encodeConfig);
+
+let ofJsonList = str => Util.parseJsonList(str, decodeConfig);
+
+let toJsonList = cList => Util.encodeJsonList(cList, encodeConfig);

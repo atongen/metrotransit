@@ -15,13 +15,6 @@ type state = {
 
 let component = ReasonReact.reducerComponent("ConfigSelect");
 
-let displayName = (maybeRoute: option(Route.t), maybeDirection: option(Direction.t), maybeStop: option(Stop.t)) =>
-  switch (maybeRoute, maybeDirection, maybeStop) {
-  | (Some(route), Some(direction), Some(stop)) =>
-    Printf.sprintf("%s %s %s", route.name, direction.name, stop.name)
-  | _ => ""
-  };
-
 let menuItems = configs =>
   List.map(configs, (config: Config.t) =>
     <MaterialUi.MenuItem key=config.id value=(`String(config.id))>
@@ -62,6 +55,10 @@ let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _
       | _ => ReasonReact.null
       };
     let expandIcon = MaterialUi.(<Icon> (ReasonReact.string("expand_more")) </Icon>);
+    let selectedName = switch(selected) {
+    | Some(config) => config.name
+    | None => "NONE"
+    };
     let configChange = (evt, _el) => {
       let configId = ReactEvent.Form.target(evt)##value;
       let maybeConfig = List.getBy(configs, config => config.id == configId);
@@ -77,30 +74,36 @@ let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _
           | Some(config) => `String(config.id)
           | None => `String("")
           };
-        <form autoComplete="off">
-          MaterialUi.(
+        MaterialUi.(
+          <form autoComplete="off">
+            <Typography variant=`H6>
+              (ReasonReact.string("Previously Selected Departures"))
+            </Typography>
             <FormControl>
-              <InputLabel> (ReasonReact.string("My Stop")) </InputLabel>
+              <InputLabel> (ReasonReact.string("Departure")) </InputLabel>
               <Select value onChange=configChange> (menuItems(configs)) </Select>
             </FormControl>
-          )
-        </form>;
+          </form>
+        );
       } else {
         ReasonReact.null;
       };
     MaterialUi.(
       <ExpansionPanel>
         <ExpansionPanelSummary expandIcon>
-          <div> <Typography> (ReasonReact.string("Select Stop")) </Typography> </div>
+          <div> <Typography> (ReasonReact.string("Departure")) </Typography> </div>
           <div>
             <Typography>
-              (ReasonReact.string(displayName(self.state.route, self.state.direction, self.state.stop)))
+              (ReasonReact.string(selectedName))
             </Typography>
           </div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
           <div>
             configSelect
+            <Typography variant=`H6>
+              (ReasonReact.string("Select New Departure"))
+            </Typography>
             <ProviderSelect selected=self.state.provider setProvider />
             <RouteSelect selected=self.state.route provider=self.state.provider setRoute />
             directionSelect

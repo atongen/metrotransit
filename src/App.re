@@ -1,29 +1,29 @@
 open Belt;
 
-module ConfigComparator =
-  Id.MakeComparable(
-    {
-      type t = Config.t;
-      let cmp = Config.compare;
-    },
-  );
-
-let emptyConfigs = Set.fromArray([||], ~id=(module ConfigComparator));
-
 type action =
   | SetConfig(Config.t);
 
 type state = {
   config: option(Config.t),
-  configs: Set.t(Config.t, ConfigComparator.identity),
+  configs: list(Config.t),
 };
 
-let updateConfigs = (configs, config) => Set.(add(remove(configs, config), config));
+let maxConfigsSize = 5;
 
-let lis = configs => {
-  let l = Set.toList(configs);
-  let names = List.map(l, (config: Config.t) => config.name);
-  String.concat(", ", names);
+let updateConfigs = (configs, config: Config.t) => {
+    let removed = List.keep(configs, (c: Config.t) => c.id != config.id)
+    let truncated = switch(List.take(removed, maxConfigsSize - 1)) {
+    | Some(t) => t
+    | None => removed
+    };
+    List.add(truncated, config);
+};
+
+let loadState = () => {config: ConfigStorage.getConfig(), configs: ConfigStorage.getConfigs()};
+
+let persistState = self => {
+    ConfigStorage.setConfig(self.ReasonReact.state.config)
+    ConfigStorage.setConfigs(self.state.configs)
 };
 
 let component = ReasonReact.reducerComponent("App");
@@ -33,20 +33,14 @@ let make = _children => {
   reducer: (action, state) =>
     switch (action) {
     | SetConfig(config) =>
-      ReasonReact.Update({config: Some(config), configs: updateConfigs(state.configs, config)})
+      ReasonReact.UpdateWithSideEffects(
+        {config: Some(config), configs: updateConfigs(state.configs, config)},
+        persistState,
+      )
     },
-  initialState: () => {config: None, configs: emptyConfigs},
+  initialState: () => loadState(),
   render: self => {
     let setConfig = config => self.ReasonReact.send(SetConfig(config));
-    let configName =
-      switch (self.state.config) {
-      | Some(c) => c.name
-      | None => "[NONE]"
-      };
-    <div>
-      <ConfigSelect selected=self.state.config configs=(Set.toList(self.state.configs)) setConfig />
-      <div> (ReasonReact.string(configName)) </div>
-      <div> (ReasonReact.string(lis(self.state.configs))) </div>
-    </div>;
+    <div> <ConfigSelect selected=self.state.config configs=self.state.configs setConfig /> </div>;
   },
 };
