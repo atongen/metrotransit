@@ -58,3 +58,28 @@ let capitalize = str => {
     aux(List.fromArray(Js.String.splitByRe([%re "/\\s+/"], String.trim(str))))
     |> String.concat(" ");
 };
+
+let ignoredStrs = ["-", "and"];
+
+let truncateByToken = (str, numTokens) => {
+    let rec aux = (l, acc) =>
+        switch(l) {
+        | [] => acc
+        | [hd, ...tl] =>
+            if (List.length(acc) >= numTokens) {
+                acc
+            } else {
+                switch(hd) {
+                | Some(v) =>
+                    if (!List.some(ignoredStrs, s => s == v)) {
+                        aux(tl, [v, ...acc])
+                    } else {
+                        aux(tl, acc)
+                    }
+                | None => aux(tl, acc)
+                };
+            };
+        };
+    let l = List.fromArray(Js.String.splitByRe([%re "/\\s+/"], String.trim(str)));
+    aux(l, []) |> List.reverse |> String.concat(" ");
+};
