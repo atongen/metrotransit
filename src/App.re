@@ -41,6 +41,13 @@ let make = _children => {
   initialState: () => loadState(),
   render: self => {
     let setConfig = config => self.ReasonReact.send(SetConfig(config));
-    <div> <ConfigSelect selected=self.state.config configs=self.state.configs setConfig /> </div>;
+    let departureList = switch(self.state.config) {
+    | Some(config) => <DepartureList config />
+    | None => ReasonReact.null
+    };
+    <div>
+        <ConfigSelect selected=self.state.config configs=self.state.configs setConfig />
+        departureList
+    </div>;
   },
 };
