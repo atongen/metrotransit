@@ -7,6 +7,8 @@ type t = {
   name: directionName,
 };
 
+let make = (directionId, directionName) => {id: directionId, name: directionName};
+
 let directionIdKey = "Value";
 
 let directionNameKey = "Text";

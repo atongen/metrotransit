@@ -8,6 +8,8 @@ type t = {
   providerId: Provider.providerId,
 };
 
+let make = (routeId, routeName, providerId) => {id: routeId, name: routeName, providerId};
+
 let routeIdKey = "Route";
 
 let routeNameKey = "Description";

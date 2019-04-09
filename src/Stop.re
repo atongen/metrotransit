@@ -7,6 +7,8 @@ type t = {
   name: stopName,
 };
 
+let make = (stopId, stopName) => {id: stopId, name: stopName};
+
 let stopIdKey = "Value";
 
 let stopNameKey = "Text";
