@@ -109,3 +109,8 @@ let toString = d => {
     };
   Printf.sprintf("%s - %s - %s - %b", d.name, timeStr, d.text, d.actual);
 };
+
+let id = d => {
+    Printf.sprintf("%s-%s-%s-%b-%s", d.name, d.routeId, d.directionName, d.actual, d.time)
+    |> Digest.string |> Digest.to_hex;
+};

@@ -18,7 +18,7 @@ let getExpiringItemAsOf = (cacheKey, asOf) =>
   switch (Dom.Storage.(localStorage |> getItem(expirationKey(cacheKey)))) {
   | Some(expiration) =>
     let expiresAt = float_of_string(expiration);
-    if (expiresAt > asOf) {
+    if (expiresAt < asOf) {
       None;
     } else {
       getValueItem(cacheKey);

@@ -20,7 +20,7 @@ type action =
 
 let intervalSeconds = 30;
 
-let component = ReasonReact.reducerComponent("DepartureSelect");
+let component = ReasonReact.reducerComponent("DepartureList");
 
 let make = (~config: Config.t, _childern) => {
   ...component,
@@ -67,7 +67,7 @@ let make = (~config: Config.t, _childern) => {
         (
           ReasonReact.array(
             Array.map(List.toArray(departures), departure =>
-              <li> (ReasonReact.string(Departure.toString(departure))) </li>
+              <li key=(Departure.id(departure))> (ReasonReact.string(Departure.toString(departure))) </li>
             ),
           )
         )
