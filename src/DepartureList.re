@@ -6,11 +6,13 @@ type requestState =
   | NotAsked
   | Loading
   | Failure(string)
-  | Success(list(Departure.t));
+  | Success;
 
 type state = {
   requestState,
   timerId: ref(option(Js.Global.intervalId)),
+  departures: list(Departure.t),
+  lastUpdated: Js.Date.t,
 };
 
 type action =
@@ -24,7 +26,7 @@ let component = ReasonReact.reducerComponent("DepartureList");
 
 let make = (~config: Config.t, _childern) => {
   ...component,
-  initialState: () => {requestState: NotAsked, timerId: ref(None)},
+  initialState: () => {requestState: NotAsked, timerId: ref(None), departures: [], lastUpdated: Js.Date.make()},
   reducer: (action, state) =>
     switch (action) {
     | LoadDepartures =>
@@ -45,7 +47,8 @@ let make = (~config: Config.t, _childern) => {
             )
         ),
       )
-    | LoadedDepartures(departures) => ReasonReact.Update({...state, requestState: Success(departures)})
+    | LoadedDepartures(departures) =>
+      ReasonReact.Update({...state, requestState: Success, departures, lastUpdated: Js.Date.make()})
     | LoadDeparturesFailed(err) => ReasonReact.Update({...state, requestState: Failure(err)})
     },
   didMount: self => {
@@ -60,17 +63,20 @@ let make = (~config: Config.t, _childern) => {
   render: self =>
     switch (self.state.requestState) {
     | NotAsked => ReasonReact.null
-    | Loading => <div> (ReasonReact.string("Loading departures...")) </div>
     | Failure(err) => <div> (ReasonReact.string("Something went wrong: " ++ err)) </div>
-    | Success(departures) =>
-      <ul>
-        (
-          ReasonReact.array(
-            Array.map(List.toArray(departures), departure =>
-              <li key=(Departure.id(departure))> (ReasonReact.string(Departure.toString(departure))) </li>
-            ),
+    | Loading
+    | Success =>
+      <div>
+        <p> (ReasonReact.string("Last updated: " ++ Js.Date.toLocaleString(self.state.lastUpdated))) </p>
+        <ul>
+          (
+            ReasonReact.array(
+              Array.map(List.toArray(self.state.departures), departure =>
+                <li key=(Departure.id(departure))> (ReasonReact.string(Departure.toString(departure))) </li>
+              ),
+            )
           )
-        )
-      </ul>
+        </ul>
+      </div>
     },
 };
