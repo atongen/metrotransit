@@ -30,4 +30,30 @@ describe("departure", () => {
     | Error(s) => expect(s) |> toEqual("decode error: Expected field 'Actual' in array at index 0")
     };
   });
+
+  /* 2019-04-02T19:34:00.000Z */
+  let time = "/Date(1554233640000-0500)/";
+  switch (Departure.parseTime(time)) {
+  | Some(date) =>
+    Js.log(date);
+    test("parseTime year", () =>
+      expect(Js.Date.getFullYear(date)) |> toEqual(2019.0)
+    );
+    test("parseTime month", () =>
+      expect(Js.Date.getMonth(date)) |> toEqual(3.0)
+    );
+    test("parseTime date", () =>
+      expect(Js.Date.getDate(date)) |> toEqual(2.0)
+    );
+    test("parseTime hours", () =>
+      expect(Js.Date.getHours(date)) |> toEqual(19.0)
+    );
+    test("parseTime minutes", () =>
+      expect(Js.Date.getMinutes(date)) |> toEqual(34.0)
+    );
+    test("parseTime seconds", () =>
+      expect(Js.Date.getSeconds(date)) |> toEqual(0.0)
+    );
+  | None => failwith("Did not parse departure time")
+  };
 });

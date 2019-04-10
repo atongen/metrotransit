@@ -66,7 +66,9 @@ let make = (~config: Config.t, _childern) => {
       <ul>
         (
           ReasonReact.array(
-            Array.map(List.toArray(departures), departure => <li> (ReasonReact.string(departure.name)) </li>),
+            Array.map(List.toArray(departures), departure =>
+              <li> (ReasonReact.string(Departure.toString(departure))) </li>
+            ),
           )
         )
       </ul>

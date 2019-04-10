@@ -80,3 +80,32 @@ let encodeDeparture = d =>
 let ofJson = str => Util.parseJsonList(str, decodeDeparture);
 
 let toJson = dList => Util.encodeJsonList(dList, encodeDeparture);
+
+let timeRe = [%re {|/Date\((\d+)([-+]\d+)\)/|}];
+
+let parseTime = time =>
+  switch (Js.String.match(timeRe, time)) {
+  | Some(ar) =>
+    if (Array.length(ar) == 3) {
+      let millis = float_of_string(ar[1]);
+      /*
+       ignore offset and just assume local time?
+       let offsetHours = float_of_string(ar[2]) /. 100.0;
+       let offsetMillis = offsetHours *. 3600.0 *. 1000.0;
+       */
+      let offsetMillis = 0.0;
+      Some(Js.Date.fromFloat(millis -. offsetMillis));
+    } else {
+      None;
+    }
+  | None => None
+  };
+
+let toString = d => {
+  let timeStr =
+    switch (parseTime(d.time)) {
+    | Some(d) => Js.Date.toLocaleString(d)
+    | None => "[NONE]"
+    };
+  Printf.sprintf("%s - %s - %s - %b", d.name, timeStr, d.text, d.actual);
+};
