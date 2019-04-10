@@ -1,5 +1,7 @@
 open Belt.Result;
+
 open Jest;
+
 open Expect;
 
 describe("departure", () => {
@@ -14,7 +16,6 @@ describe("departure", () => {
     | Error(s) => failwith(s)
     };
   });
-
   test("invalid json", () => {
     let str = "[}";
     switch (Departure.ofJson(str)) {
@@ -22,7 +23,6 @@ describe("departure", () => {
     | Error(s) => expect(s) |> toEqual("parse error: Unexpected token } in JSON at position 1")
     };
   });
-
   test("invalid departure", () => {
     let str = "[{\"one\":1}]";
     switch (Departure.ofJson(str)) {
@@ -30,12 +30,10 @@ describe("departure", () => {
     | Error(s) => expect(s) |> toEqual("decode error: Expected field 'Actual' in array at index 0")
     };
   });
-
-  /* 2019-04-02T19:34:00.000Z */
+  /* 2019-04-02T19:34:00.000Z (utc) */
   let time = "/Date(1554233640000-0500)/";
-  switch (Departure.parseTime(time)) {
+  switch (Departure.parseLocalTime(time)) {
   | Some(date) =>
-    Js.log(date);
     test("parseTime year", () =>
       expect(Js.Date.getFullYear(date)) |> toEqual(2019.0)
     );
@@ -46,7 +44,7 @@ describe("departure", () => {
       expect(Js.Date.getDate(date)) |> toEqual(2.0)
     );
     test("parseTime hours", () =>
-      expect(Js.Date.getHours(date)) |> toEqual(19.0)
+      expect(Js.Date.getHours(date)) |> toEqual(14.0)
     );
     test("parseTime minutes", () =>
       expect(Js.Date.getMinutes(date)) |> toEqual(34.0)

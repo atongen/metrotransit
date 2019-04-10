@@ -83,27 +83,27 @@ let toJson = dList => Util.encodeJsonList(dList, encodeDeparture);
 
 let timeRe = [%re {|/Date\((\d+)([-+]\d+)\)/|}];
 
-let parseTime = time =>
+let timeZoneOffset = Js.Date.(make() |> getTimezoneOffset) *. 60.0 *. 1000.0;
+
+let parseTime = (~offset=0.0, time) =>
   switch (Js.String.match(timeRe, time)) {
   | Some(ar) =>
     if (Array.length(ar) == 3) {
       let millis = float_of_string(ar[1]);
-      /*
-       ignore offset and just assume local time?
-       let offsetHours = float_of_string(ar[2]) /. 100.0;
-       let offsetMillis = offsetHours *. 3600.0 *. 1000.0;
-       */
-      let offsetMillis = 0.0;
-      Some(Js.Date.fromFloat(millis -. offsetMillis));
+      let localOffsetHours = float_of_string(ar[2]) /. 100.0;
+      let localOffsetMillis = localOffsetHours *. 3600.0 *. 1000.0;
+      Some(Js.Date.fromFloat(millis +. localOffsetMillis +. offset));
     } else {
       None;
     }
   | None => None
   };
 
+let parseLocalTime = time => parseTime(~offset=timeZoneOffset, time);
+
 let toString = d => {
   let timeStr =
-    switch (parseTime(d.time)) {
+    switch (parseLocalTime(d.time)) {
     | Some(d) => Js.Date.toLocaleString(d)
     | None => "[NONE]"
     };
