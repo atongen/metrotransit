@@ -100,17 +100,7 @@ let parseTime = (~offset=0.0, time) =>
   };
 
 let parseLocalTime = time => parseTime(~offset=timeZoneOffset, time);
-
-let toString = d => {
-  let timeStr =
-    switch (parseLocalTime(d.time)) {
-    | Some(d) => Js.Date.toLocaleString(d)
-    | None => "[NONE]"
-    };
-  Printf.sprintf("%s - %s - %s - %b", d.name, timeStr, d.text, d.actual);
-};
-
-let id = d => {
-    Printf.sprintf("%s-%s-%s-%b-%s", d.name, d.routeId, d.directionName, d.actual, d.time)
-    |> Digest.string |> Digest.to_hex;
-};
+let id = d =>
+  Printf.sprintf("%s-%s-%s-%b-%s", d.name, d.routeId, d.directionName, d.actual, d.time)
+  |> Digest.string
+  |> Digest.to_hex;
