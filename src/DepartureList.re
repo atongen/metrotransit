@@ -75,12 +75,7 @@ let shouldUpdate = (state, now) =>
   switch (state.requestState, state.lastUpdated) {
   | (NotAsked, _) => true
   | (_, None) => true
-  | (_, Some(t)) =>
-    if (diffSec(now, t) >= float_of_int(updateIntervalSeconds)) {
-      true;
-    } else {
-      false;
-    }
+  | (_, Some(t)) => diffSec(now, t) >= float_of_int(updateIntervalSeconds)
   };
 
 let make = (~config: Config.t, _childern) => {
@@ -103,7 +98,6 @@ let make = (~config: Config.t, _childern) => {
           (
             self => {
               let c = self.state.config;
-              Js.log("Loading config: " ++ c.name);
               Js.Promise.(
                 Util.fetchUrl(ApiUri.(toString(TimepointDeparturesUri(c.route, c.direction, c.stop))))
                 |> then_(jsonStr => Departure.ofJson(jsonStr) |> resolve)
