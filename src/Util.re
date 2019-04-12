@@ -147,3 +147,5 @@ let distanceOfTimeInWords = (fromTime, toTime) => {
       };
     s("%s %s", dot, rel);
   };
+
+let typography = (~variant=`Body1, s) => MaterialUi.(<Typography variant> (ReasonReact.string(s)) </Typography>);

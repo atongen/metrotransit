@@ -50,8 +50,8 @@ let make = (~selected: option(Stop.t), ~route: Route.t, ~direction: Direction.t,
   render: self =>
     switch (self.state) {
     | NotAsked => ReasonReact.null
-    | Loading => <div> (ReasonReact.string("Loading stops...")) </div>
-    | Failure(err) => <div> (ReasonReact.string("Something went wrong: " ++ err)) </div>
+    | Loading => Util.typography("Loading providers...")
+    | Failure(err) => Util.typography("Something went wrong: " ++ err)
     | Success(stops) =>
       let stopChange = (evt, _el) => {
         let stopId = ReactEvent.Form.target(evt)##value;
@@ -65,7 +65,7 @@ let make = (~selected: option(Stop.t), ~route: Route.t, ~direction: Direction.t,
         };
       <form autoComplete="off">
         MaterialUi.(
-          <FormControl>
+          <FormControl fullWidth=true>
             <InputLabel> (ReasonReact.string("Stop")) </InputLabel>
             <Select value onChange=stopChange> (menuItems(stops)) </Select>
           </FormControl>

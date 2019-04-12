@@ -58,8 +58,8 @@ let make = (~selected: option(Route.t), ~provider: option(Provider.t), ~setRoute
   render: self =>
     switch (self.state) {
     | NotAsked => ReasonReact.null
-    | Loading => <div> (ReasonReact.string("Loading routes...")) </div>
-    | Failure(err) => <div> (ReasonReact.string("Something went wrong: " ++ err)) </div>
+    | Loading => Util.typography("Loading providers...")
+    | Failure(err) => Util.typography("Something went wrong: " ++ err)
     | Success(routes) =>
       let routeChange = (evt, _el) => {
         let routeId = ReactEvent.Form.target(evt)##value;
@@ -73,7 +73,7 @@ let make = (~selected: option(Route.t), ~provider: option(Provider.t), ~setRoute
         };
       <form autoComplete="off">
         MaterialUi.(
-          <FormControl>
+          <FormControl fullWidth=true>
             <InputLabel> (ReasonReact.string("Route")) </InputLabel>
             <Select value onChange=routeChange> (menuItems(routes, provider)) </Select>
           </FormControl>

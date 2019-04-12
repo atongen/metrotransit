@@ -54,8 +54,8 @@ let make = (~selected: option(Provider.t), ~setProvider, _childern) => {
   render: self =>
     switch (self.state) {
     | NotAsked => ReasonReact.null
-    | Loading => <div> (ReasonReact.string("Loading providers...")) </div>
-    | Failure(err) => <div> (ReasonReact.string("Something went wrong: " ++ err)) </div>
+    | Loading => Util.typography("Loading providers...")
+    | Failure(err) => Util.typography("Something went wrong: " ++ err)
     | Success(providers) =>
       let providerChange = (evt, _el) => {
         let providerId = ReactEvent.Form.target(evt)##value;
@@ -69,7 +69,7 @@ let make = (~selected: option(Provider.t), ~setProvider, _childern) => {
         };
       <form autoComplete="off">
         MaterialUi.(
-          <FormControl>
+          <FormControl fullWidth=true>
             <InputLabel> (ReasonReact.string("Provider")) </InputLabel>
             <Select value onChange=providerChange> (menuItems(providers)) </Select>
           </FormControl>

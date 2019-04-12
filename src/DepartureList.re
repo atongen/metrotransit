@@ -147,6 +147,6 @@ let make = (~config: Config.t, _childern) => {
     | Success =>
       let departureList = renderDepartureList(self.state.departures, self.state.currentTime);
       let lastUpdated = makeLastUpdatedStr(self.state.lastUpdated, self.state.currentTime);
-      <div> departureList <MaterialUi.Typography variant=`Body1> (s(lastUpdated)) </MaterialUi.Typography> </div>;
+      <div> <MaterialUi.Typography variant=`Body1> (s(lastUpdated)) </MaterialUi.Typography> departureList </div>;
     },
 };

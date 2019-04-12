@@ -17,17 +17,33 @@ type state = {
 
 let component = ReasonReact.reducerComponent("ConfigSelect");
 
+let s = ReasonReact.string;
+
 let menuItems = configs =>
   List.map(configs, (config: Config.t) =>
-    <MaterialUi.MenuItem key=config.id value=(`String(config.id))>
-      (ReasonReact.string(config.name))
-    </MaterialUi.MenuItem>
+    <MaterialUi.MenuItem key=config.id value=(`String(config.id))> (s(config.shortName)) </MaterialUi.MenuItem>
   );
 
 let isEmpty =
   fun
   | Some(_) => false
   | None => true;
+
+let makePanelSummary = (selected : option(Config.t)) => {
+  let expandIcon = MaterialUi.(<Icon> (s("expand_more")) </Icon>);
+  let (name, color) =
+    switch (selected) {
+    | Some(config) => (config.shortName, `Primary)
+    | None => ("Select Departure", `Secondary)
+    };
+  let headerStyle = ReactDOMRe.Style.make(~flexBasis="33.3%",());
+  MaterialUi.(
+  <ExpansionPanelSummary expandIcon>
+    <div style=headerStyle> <Typography> (s("Departure")) </Typography> </div>
+    <div> <Typography color> (s(name)) </Typography> </div>
+  </ExpansionPanelSummary>
+  )
+};
 
 let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _children) => {
   ...component,
@@ -42,7 +58,7 @@ let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _
       | Some(config) =>
         ReasonReact.UpdateWithSideEffects({...state, stop, expanded: false}, (_state => setConfig(config)))
       | None => ReasonReact.Update({provider: None, route: None, direction: None, stop: None, expanded: true})
-      }
+      };
     | ToggleExpanded => ReasonReact.Update({...state, expanded: ! state.expanded})
     },
   initialState: () => {provider: None, route: None, direction: None, stop: None, expanded: isEmpty(selected)},
@@ -61,12 +77,6 @@ let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _
       switch (self.state.route, self.state.direction) {
       | (Some(r), Some(d)) => <StopSelect selected=self.state.stop route=r direction=d setStop />
       | _ => ReasonReact.null
-      };
-    let expandIcon = MaterialUi.(<Icon> (ReasonReact.string("expand_more")) </Icon>);
-    let selectedName =
-      switch (selected) {
-      | Some(config) => config.shortName
-      | None => "NONE"
       };
     let configChange = (evt, _el) => {
       let configId = ReactEvent.Form.target(evt)##value;
@@ -87,8 +97,8 @@ let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _
           };
         MaterialUi.(
           <form autoComplete="off">
-            <FormControl>
-              <InputLabel> (ReasonReact.string("Previously Selected Departures")) </InputLabel>
+            <FormControl fullWidth=true>
+              <InputLabel> (s("Previously Selected Departures")) </InputLabel>
               <Select value onChange=configChange> (menuItems(configs)) </Select>
             </FormControl>
           </form>
@@ -96,23 +106,25 @@ let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _
       } else {
         ReasonReact.null;
       };
-    MaterialUi.(
-      <ExpansionPanel expanded=self.state.expanded onChange=toggleExpanded>
-        <ExpansionPanelSummary expandIcon>
-          <div> <Typography> (ReasonReact.string("Departure")) </Typography> </div>
-          <div> <Typography> (ReasonReact.string(selectedName)) </Typography> </div>
-        </ExpansionPanelSummary>
-        <ExpansionPanelDetails>
-          <div>
-            configSelect
-            <Typography variant=`H6> (ReasonReact.string("Select New Departure")) </Typography>
-            <ProviderSelect selected=self.state.provider setProvider />
-            <RouteSelect selected=self.state.route provider=self.state.provider setRoute />
-            directionSelect
-            stopSelect
-          </div>
-        </ExpansionPanelDetails>
-      </ExpansionPanel>
-    );
+      let panelSummary = makePanelSummary(selected);
+      MaterialUi.(
+        <ExpansionPanel expanded=self.state.expanded onChange=toggleExpanded>
+          panelSummary
+          <ExpansionPanelDetails>
+            <Grid container=true>
+              <Grid item=true xs=V12>
+                configSelect
+              </Grid>
+              <Grid item=true xs=V12>
+                <Typography variant=`H6> (s("Select New Departure")) </Typography>
+                <ProviderSelect selected=self.state.provider setProvider />
+                <RouteSelect selected=self.state.route provider=self.state.provider setRoute />
+                directionSelect
+                stopSelect
+              </Grid>
+            </Grid>
+          </ExpansionPanelDetails>
+        </ExpansionPanel>
+      )
   },
 };
