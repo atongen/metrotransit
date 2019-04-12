@@ -26,6 +26,7 @@
         "bs-fetch": "^0.3.1",
         "bs-platform": "^5.0.1",
         "compression-webpack-plugin": "^2.0.0",
+        "html-webpack-plugin": "^3.2.0",
         "react": "^16.8.4",
         "react-dom": "^16.8.4",
         "reason-react": "^0.6.0",
