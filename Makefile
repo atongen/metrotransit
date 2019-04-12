@@ -6,6 +6,8 @@ default: all
 
 clean:
 	npm run-script clean
+	rm -f public/index.html
+	rm -f public/assets/*
 
 build:
 	npm run-script build
