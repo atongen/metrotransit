@@ -63,11 +63,12 @@ let make = (~selected: option(Stop.t), ~route: Route.t, ~direction: Direction.t,
         | Some(stop) => `String(stop.id)
         | None => `String("")
         };
+      let style = ReactDOMRe.Style.make(~overflow="hidden", ());
       <form autoComplete="off">
         MaterialUi.(
           <FormControl fullWidth=true>
             <InputLabel> (ReasonReact.string("Stop")) </InputLabel>
-            <Select value onChange=stopChange> (menuItems(stops)) </Select>
+            <Select value onChange=stopChange style> (menuItems(stops)) </Select>
           </FormControl>
         )
       </form>;

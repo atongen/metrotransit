@@ -1,6 +1,8 @@
-let mainStyle = ReactDOMRe.Style.make(~display="flex", ~marginLeft="auto", ~marginRight="auto", ());
+let mainStyle = ReactDOMRe.Style.make(~width="100%", ~display="flex", ~marginLeft="auto", ~marginRight="auto", ());
+
 let paperStyle =
   ReactDOMRe.Style.make(
+    ~width="100%",
     ~display="flex",
     ~flexDirection="column",
     ~alignItems="center",
@@ -14,7 +16,7 @@ let content =
     MaterialUi.(
       <CssBaseline>
         <Paper style=paperStyle>
-          <Typography variant=`H1> (ReasonReact.string("Metrotransit")) </Typography>
+          <Typography variant=`H4> (ReasonReact.string("Nextrip - Metrotransit")) </Typography>
           <App />
         </Paper>
       </CssBaseline>

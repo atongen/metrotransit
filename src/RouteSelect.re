@@ -71,11 +71,12 @@ let make = (~selected: option(Route.t), ~provider: option(Provider.t), ~setRoute
         | Some(route) => `String(route.id)
         | None => `String("")
         };
+      let style = ReactDOMRe.Style.make(~overflow="hidden", ());
       <form autoComplete="off">
         MaterialUi.(
           <FormControl fullWidth=true>
             <InputLabel> (ReasonReact.string("Route")) </InputLabel>
-            <Select value onChange=routeChange> (menuItems(routes, provider)) </Select>
+            <Select value onChange=routeChange style> (menuItems(routes, provider)) </Select>
           </FormControl>
         )
       </form>;

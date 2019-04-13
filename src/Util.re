@@ -59,7 +59,7 @@ let capitalize = str => {
     |> String.concat(" ");
 };
 
-let ignoredStrs = ["-", "and"];
+let ignoredStrs = ["-", "and", "&"];
 
 let truncateByToken = (str, numTokens) => {
     let rec aux = (l, acc) =>

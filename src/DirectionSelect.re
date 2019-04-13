@@ -65,11 +65,12 @@ let make = (~selected: option(Direction.t), ~route: Route.t, ~setDirection, _chi
         | Some(direction) => `String(direction.id)
         | None => `String("")
         };
+      let style = ReactDOMRe.Style.make(~overflow="hidden", ());
       <form autoComplete="off">
         MaterialUi.(
           <FormControl fullWidth=true>
             <InputLabel> (ReasonReact.string("Direction")) </InputLabel>
-            <Select value onChange=directionChange> (menuItems(directions)) </Select>
+            <Select value onChange=directionChange style> (menuItems(directions)) </Select>
           </FormControl>
         )
       </form>;

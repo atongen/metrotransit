@@ -25,7 +25,7 @@ module.exports = {
     mode: isProd ? "production" : "development",
     output: {
         path: path.join(__dirname, "public/assets"),
-        filename: "[name].[contenthash].js",
+        filename: isProd ? "[name].[contenthash].js" : "[name].js",
     },
     optimization: {
         minimizer: isProd ? [new UglifyJsPlugin({sourceMap: true})] : [],

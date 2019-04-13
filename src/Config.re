@@ -12,10 +12,10 @@ type t = {
 };
 
 let makeShortName = (route: Route.t, direction: Direction.t, stop: Stop.t) => {
-  let r = Util.truncateByToken(route.name, 3);
+  let r = Util.truncateByToken(route.name, 2);
   let d = Js.String.replace("bound", "", Util.capitalize(direction.name));
-  let s = Util.truncateByToken(stop.name, 3);
-  Printf.sprintf("%s heading %s from %s", r, d, s);
+  let s = Util.truncateByToken(stop.name, 2);
+  Printf.sprintf("%s - %s - %s", r, d, s);
 };
 
 let make = (maybeRoute: option(Route.t), maybeDirection: option(Direction.t), maybeStop: option(Stop.t)) =>

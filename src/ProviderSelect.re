@@ -67,11 +67,12 @@ let make = (~selected: option(Provider.t), ~setProvider, _childern) => {
         | Some(provider) => `String(provider.id)
         | None => `String("all")
         };
+      let style = ReactDOMRe.Style.make(~overflow="hidden", ());
       <form autoComplete="off">
         MaterialUi.(
           <FormControl fullWidth=true>
             <InputLabel> (ReasonReact.string("Provider")) </InputLabel>
-            <Select value onChange=providerChange> (menuItems(providers)) </Select>
+            <Select value onChange=providerChange style> (menuItems(providers)) </Select>
           </FormControl>
         )
       </form>;

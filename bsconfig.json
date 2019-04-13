@@ -24,8 +24,7 @@
         }
     ],
     "package-specs": {
-        "module": "commonjs",
-        "in-source": false
+        "module": "commonjs"
     },
     "refmt": 3,
     "ppx-flags": [
