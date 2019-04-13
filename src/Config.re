@@ -18,17 +18,18 @@ let makeShortName = (route: Route.t, direction: Direction.t, stop: Stop.t) => {
   Printf.sprintf("%s - %s - %s", r, d, s);
 };
 
-let make = (maybeRoute: option(Route.t), maybeDirection: option(Direction.t), maybeStop: option(Stop.t)) =>
+let make = (route: Route.t, direction: Direction.t, stop: Stop.t) => {
+  id: Printf.sprintf("%s-%s-%s", route.id, direction.id, stop.id),
+  name: Printf.sprintf("%s - %s - %s", route.name, Util.capitalize(direction.name), stop.name),
+  shortName: makeShortName(route, direction, stop),
+  route: route.id,
+  direction: direction.id,
+  stop: stop.id,
+};
+
+let maybeMake = (maybeRoute: option(Route.t), maybeDirection: option(Direction.t), maybeStop: option(Stop.t)) =>
   switch (maybeRoute, maybeDirection, maybeStop) {
-  | (Some(route), Some(direction), Some(stop)) =>
-    Some({
-      id: Printf.sprintf("%s-%s-%s", route.id, direction.id, stop.id),
-      name: Printf.sprintf("%s - %s - %s", route.name, Util.capitalize(direction.name), stop.name),
-      shortName: makeShortName(route, direction, stop),
-      route: route.id,
-      direction: direction.id,
-      stop: stop.id,
-    })
+  | (Some(route), Some(direction), Some(stop)) => Some(make(route, direction, stop))
   | _ => None
   };
 

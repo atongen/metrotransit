@@ -37,8 +37,8 @@ let makePanelSummary = (selected: option(Config.t)) => {
     | None => ("Select Departure", `Secondary)
     };
   MaterialUi.(
-    <ExpansionPanelSummary expandIcon style>
-      <div> <Typography> (s(name)) </Typography> </div>
+    <ExpansionPanelSummary expandIcon>
+      <div> <Typography color> (s(name)) </Typography> </div>
     </ExpansionPanelSummary>
   );
 };
@@ -51,7 +51,7 @@ let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _
     | SetRoute(route) => ReasonReact.Update({...state, route, direction: None, stop: None})
     | SetDirection(direction) => ReasonReact.Update({...state, direction, stop: None})
     | SetStop(stop) =>
-      let maybeConfig = Config.make(state.route, state.direction, stop);
+      let maybeConfig = Config.maybeMake(state.route, state.direction, stop);
       switch (maybeConfig) {
       | Some(config) =>
         ReasonReact.UpdateWithSideEffects({...state, stop, expanded: false}, (_state => setConfig(config)))
@@ -93,7 +93,7 @@ let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _
           | Some(config) => `String(config.id)
           | None => `String("")
           };
-        let style = ReactDOMRe.Style.make(~overflow="hidden",());
+        let style = ReactDOMRe.Style.make(~overflow="hidden", ());
         MaterialUi.(
           <form autoComplete="off">
             <FormControl fullWidth=true>
