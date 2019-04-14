@@ -22,6 +22,6 @@ prod: clean build
 	npm run-script webpack:production
 
 deploy: prod
-	scp -r public/* mercury:/var/www/metrotransit/current/public/
+	rsync -avz --delete public/ mercury:/var/www/metrotransit/current/public/
 
 all: build webpack
