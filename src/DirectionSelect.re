@@ -33,8 +33,7 @@ let make = (~selected: option(Direction.t), ~route: Route.t, ~setDirection, _chi
         (
           self =>
             Js.Promise.(
-              Util.getCachedUrl(ApiUri.(toString(DirectionsUri(route.id))))
-              |> then_(jsonStr => Direction.ofJson(jsonStr) |> resolve)
+              ApiUri.loadDirections(route.id)
               |> then_(result =>
                    switch (result) {
                    | Ok(directions) => resolve(self.send(LoadedDirections(directions)))

@@ -35,8 +35,7 @@ let make = (~selected: option(Provider.t), ~setProvider, _childern) => {
         (
           self =>
             Js.Promise.(
-              Util.getCachedUrl(ApiUri.(toString(ProvidersUri)))
-              |> then_(jsonStr => Provider.ofJson(jsonStr) |> resolve)
+              ApiUri.loadProviders()
               |> then_(result =>
                    switch (result) {
                    | Ok(providers) => resolve(self.send(LoadedProviders(providers)))

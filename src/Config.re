@@ -1,3 +1,5 @@
+open Belt;
+
 type configId = string;
 
 type configName = string;
@@ -32,6 +34,63 @@ let maybeMake = (maybeRoute: option(Route.t), maybeDirection: option(Direction.t
   | (Some(route), Some(direction), Some(stop)) => Some(make(route, direction, stop))
   | _ => None
   };
+
+let load = (routeId: Route.routeId, directionId: Direction.directionId, stopId: Stop.stopId) => {
+  let m = make;
+  Js.Promise.(
+    Result.(
+      ApiUri.loadRoutes()
+      |> then_(routeResult =>
+           switch (routeResult) {
+           | Ok(routes) =>
+             let maybeRoute = List.getBy(routes, (route: Route.t) => route.id == routeId);
+             switch (maybeRoute) {
+             | Some(route) =>
+               ApiUri.loadDirections(route.id)
+               |> then_(directionResult =>
+                    switch (directionResult) {
+                    | Ok(directions) =>
+                      let maybeDirection =
+                        List.getBy(directions, (direction: Direction.t) => direction.id == directionId);
+                      switch (maybeDirection) {
+                      | Some(direction) =>
+                        ApiUri.loadStops(route.id, direction.id)
+                        |> then_(stopResult =>
+                             switch (stopResult) {
+                             | Ok(stops) =>
+                               let maybeStop = List.getBy(stops, (stop: Stop.t) => stop.id == stopId);
+                               switch (maybeStop) {
+                               | Some(stop) => resolve(Ok(m(route, direction, stop)))
+                               | None => resolve(Error("stop id not found"))
+                               };
+                             | Error(err) as e => resolve(e)
+                             }
+                           )
+                      | None => resolve(Error("direction id not found"))
+                      };
+                    | Error(err) as e => resolve(e)
+                    }
+                  )
+             | None => resolve(Error("route id not found"))
+             };
+           | Error(err) as e => resolve(e)
+           }
+         )
+    )
+  );
+};
+
+let fromHash = hash => {
+  let ar = Js.String.split("-", hash);
+  if (Array.length(ar) == 3) {
+    switch (ar[0], ar[1], ar[2]) {
+    | (Some(routeId), Some(directionId), Some(stopId)) => load(routeId, directionId, stopId)
+    | _ => Js.Promise.resolve(Belt.Result.Error("invalid config hash"))
+    };
+  } else {
+    Js.Promise.resolve(Belt.Result.Error("invalid config hash"));
+  };
+};
 
 let configIdKey = "i";
 

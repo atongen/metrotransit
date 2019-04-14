@@ -1,4 +1,5 @@
 open Belt;
+open Belt.Result;
 
 type action =
   | SetConfig(Config.t);
@@ -19,7 +20,33 @@ let updateConfigs = (configs, config: Config.t) => {
     List.add(truncated, config);
 };
 
-let loadState = () => {config: ConfigStorage.getConfig(), configs: ConfigStorage.getConfigs()};
+let urlChanged = (self, url) =>
+    switch(self.ReasonReact.state.config) {
+    | Some(config) =>
+        if (url.ReasonReact.Router.hash != "") {
+            Js.Promise.(
+                Config.fromHash(url.hash)
+                |> then_(result =>
+                    switch(result) {
+                    | Ok(config: Config.t) =>
+                        if (url.hash != config.id) {
+                            resolve(self.ReasonReact.send(SetConfig(config)))
+                        } else {
+                            resolve(())
+                        }
+                    | Error(err) => resolve(Js.log("Error loading config from url: " ++ err));
+                    }
+                )
+                |> ignore
+            );
+        } else {
+            Js.log("not updating")
+        };
+    | None => ()
+    };
+
+let loadState = () =>
+  { config: ConfigStorage.getConfig(), configs: ConfigStorage.getConfigs() };
 
 let persistState = self => {
     ConfigStorage.setConfig(self.ReasonReact.state.config)
@@ -35,10 +62,17 @@ let make = _children => {
     | SetConfig(config) =>
       ReasonReact.UpdateWithSideEffects(
         {config: Some(config), configs: updateConfigs(state.configs, config)},
-        persistState,
+        self => {
+            ReasonReact.Router.push("#" ++ config.id)
+            persistState(self)
+        }
       )
     },
-  initialState: () => loadState(),
+  initialState: loadState,
+  didMount: self => {
+    let token = ReasonReact.Router.watchUrl(url => urlChanged(self, url))
+    self.onUnmount(() => ReasonReact.Router.unwatchUrl(token));
+  },
   render: self => {
     let setConfig = config => self.ReasonReact.send(SetConfig(config));
     let departureList = switch(self.state.config) {

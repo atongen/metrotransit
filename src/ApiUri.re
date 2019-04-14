@@ -24,3 +24,33 @@ let path =
   | VehicleLocationsUri(routeId) => Printf.sprintf("/vehiclelocations/%s", routeId);
 
 let toString = x => Printf.sprintf("%s://%s%s%s?%s", protocol, domain, basePath, path(x), params);
+
+let loadProviders = () =>
+  Js.Promise.(Util.getCachedUrl(toString(ProvidersUri)) |> then_(jsonStr => Provider.ofJson(jsonStr) |> resolve));
+
+let loadRoutes = () =>
+  Js.Promise.(Util.getCachedUrl(toString(RoutesUri)) |> then_(jsonStr => Route.ofJson(jsonStr) |> resolve));
+
+let loadDirections = routeId =>
+  Js.Promise.(
+    Util.getCachedUrl(toString(DirectionsUri(routeId)))
+    |> then_(jsonStr => Direction.ofJson(jsonStr) |> resolve)
+  );
+
+let loadStops = (routeId, directionId) =>
+  Js.Promise.(
+    Util.getCachedUrl(toString(StopsUri(routeId, directionId)))
+    |> then_(jsonStr => Stop.ofJson(jsonStr) |> resolve)
+  );
+
+let loadTimepointDepartures = (routeId, directionId, stopId) =>
+  Js.Promise.(
+    Util.getCachedUrl(toString(TimepointDeparturesUri(routeId, directionId, stopId)))
+    |> then_(jsonStr => Departure.ofJson(jsonStr) |> resolve)
+  );
+
+let loadVehicleLocations = routeId =>
+  Js.Promise.(
+    Util.getCachedUrl(toString(VehicleLocationsUri(routeId)))
+    |> then_(jsonStr => Location.ofJson(jsonStr) |> resolve)
+  );

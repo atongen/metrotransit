@@ -31,8 +31,7 @@ let make = (~selected: option(Stop.t), ~route: Route.t, ~direction: Direction.t,
         (
           self =>
             Js.Promise.(
-              Util.getCachedUrl(ApiUri.(toString(StopsUri(route.id, direction.id))))
-              |> then_(jsonStr => Stop.ofJson(jsonStr) |> resolve)
+              ApiUri.loadStops(route.id, direction.id)
               |> then_(result =>
                    switch (result) {
                    | Ok(stops) => resolve(self.send(LoadedStops(stops)))

@@ -23,6 +23,7 @@ type action =
   | LoadDeparturesFailed(string);
 
 let updateIntervalSeconds = 30;
+
 let tickIntervalSeconds = 1;
 
 let s = ReasonReact.string;
@@ -99,8 +100,7 @@ let make = (~config: Config.t, _childern) => {
             self => {
               let c = self.state.config;
               Js.Promise.(
-                Util.fetchUrl(ApiUri.(toString(TimepointDeparturesUri(c.route, c.direction, c.stop))))
-                |> then_(jsonStr => Departure.ofJson(jsonStr) |> resolve)
+                ApiUri.loadTimepointDepartures(c.route, c.direction, c.stop)
                 |> then_(result =>
                      switch (result) {
                      | Ok(departures) => resolve(self.send(LoadedDepartures(departures)))

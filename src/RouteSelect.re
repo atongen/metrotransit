@@ -39,8 +39,7 @@ let make = (~selected: option(Route.t), ~provider: option(Provider.t), ~setRoute
         (
           self =>
             Js.Promise.(
-              Util.getCachedUrl(ApiUri.(toString(RoutesUri)))
-              |> then_(jsonStr => Route.ofJson(jsonStr) |> resolve)
+              ApiUri.loadRoutes()
               |> then_(result =>
                    switch (result) {
                    | Ok(routes) => resolve(self.send(LoadedRoutes(routes)))
