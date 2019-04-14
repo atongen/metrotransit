@@ -3,7 +3,7 @@ let valueKey = cacheKey => cacheKey ++ "-value";
 let expirationKey = cacheKey => cacheKey ++ "-expires";
 
 let setExpiringItemAsOf = (cacheKey, value, expiresIn, asOf) => {
-  let expiration = Js.Float.toString(asOf +. expiresIn);
+  let expiration = Js.Float.toString(asOf +. expiresIn *. 1000.0);
   open Dom.Storage;
   localStorage |> setItem(expirationKey(cacheKey), expiration);
   localStorage |> setItem(valueKey(cacheKey), value);

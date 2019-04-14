@@ -7,6 +7,13 @@ const ManifestPlugin = require("webpack-manifest-plugin");
 const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
+function out(cmd) {
+    return require("child_process").execSync(cmd).toString().replace(/\n$/, "");
+};
+
+const release = out("git rev-parse HEAD");
+const revised = out("git show -s --format=%ci HEAD");
+
 module.exports = {
     plugins: [
         new webpack.HashedModuleIdsPlugin(),
@@ -16,7 +23,9 @@ module.exports = {
         new ManifestPlugin({}),
         new HtmlWebpackPlugin({
             template: "./src/index.html.ejs",
-            filename: "../index.html"
+            filename: "../index.html",
+            release: release,
+            revised: revised
         })
     ],
     entry: {

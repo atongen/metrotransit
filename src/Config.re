@@ -63,17 +63,17 @@ let load = (routeId: Route.routeId, directionId: Direction.directionId, stopId: 
                                | Some(stop) => resolve(Ok(m(route, direction, stop)))
                                | None => resolve(Error("stop id not found"))
                                };
-                             | Error(err) as e => resolve(e)
+                             | Error(_err) as e => resolve(e)
                              }
                            )
                       | None => resolve(Error("direction id not found"))
                       };
-                    | Error(err) as e => resolve(e)
+                    | Error(_err) as e => resolve(e)
                     }
                   )
              | None => resolve(Error("route id not found"))
              };
-           | Error(err) as e => resolve(e)
+           | Error(_err) as e => resolve(e)
            }
          )
     )

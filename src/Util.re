@@ -26,7 +26,7 @@ let encodeJson = (j, encoder) => Json.(j |> encoder |> stringify);
 
 let fetchUrl = url => Js.Promise.(Fetch.fetch(url) |> then_(Fetch.Response.text));
 
-let getCachedUrl = url => Cache.getSetExpiringItem(url, () => fetchUrl(url), 30.0);
+let getCachedUrl = (~expiration=60.0, url) => Cache.getSetExpiringItem(url, () => fetchUrl(url), expiration);
 
 let compactMap = (f, l) => {
     let rec aux = (l, acc) => {

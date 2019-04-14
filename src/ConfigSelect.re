@@ -5,7 +5,7 @@ type action =
   | SetRoute(option(Route.t))
   | SetDirection(option(Direction.t))
   | SetStop(option(Stop.t))
-  | ToggleExpanded;
+  | SetExpanded(bool);
 
 type state = {
   provider: option(Provider.t),
@@ -57,15 +57,16 @@ let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _
         ReasonReact.UpdateWithSideEffects({...state, stop, expanded: false}, (_state => setConfig(config)))
       | None => ReasonReact.Update({provider: None, route: None, direction: None, stop: None, expanded: true})
       };
-    | ToggleExpanded => ReasonReact.Update({...state, expanded: ! state.expanded})
+    | SetExpanded(expanded) => ReasonReact.Update({...state, expanded})
     },
   initialState: () => {provider: None, route: None, direction: None, stop: None, expanded: isEmpty(selected)},
+  willReceiveProps: self => {...self.state, expanded: isEmpty(selected)},
   render: self => {
     let setProvider = provider => self.ReasonReact.send(SetProvider(provider));
     let setRoute = route => self.send(SetRoute(route));
     let setDirection = direction => self.send(SetDirection(direction));
     let setStop = stop => self.send(SetStop(stop));
-    let toggleExpanded = (_f, _e) => self.send(ToggleExpanded);
+    let toggleExpanded = (_f, _e) => self.send(SetExpanded(! self.state.expanded));
     let directionSelect =
       switch (self.state.route) {
       | Some(route) => <DirectionSelect selected=self.state.direction route setDirection />
@@ -82,7 +83,7 @@ let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _
       switch (maybeConfig) {
       | Some(config) =>
         setConfig(config);
-        self.ReasonReact.send(ToggleExpanded);
+        self.ReasonReact.send(SetExpanded(false));
       | None => ()
       };
     };
