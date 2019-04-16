@@ -24,6 +24,9 @@ let menuItems = configs =>
     <MaterialUi.MenuItem key=config.id value=(`String(config.id))> (s(config.shortName)) </MaterialUi.MenuItem>
   );
 
+let nativeMenuItems = configs =>
+  List.map(configs, (config: Config.t) => <option value=config.id> (s(config.shortName)) </option>);
+
 let isEmpty =
   fun
   | Some(_) => false
@@ -94,12 +97,11 @@ let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _
           | Some(config) => `String(config.id)
           | None => `String("")
           };
-        let style = ReactDOMRe.Style.make(~overflow="hidden", ());
         MaterialUi.(
           <form autoComplete="off">
             <FormControl fullWidth=true>
               <InputLabel> (s("Previously Selected Departures")) </InputLabel>
-              <Select value onChange=configChange style> (menuItems(configs)) </Select>
+              <Select native=true value onChange=configChange> (nativeMenuItems(configs)) </Select>
             </FormControl>
           </form>
         );
