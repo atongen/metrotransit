@@ -15,17 +15,24 @@ type action =
 
 let component = ReasonReact.reducerComponent("RouteSelect");
 
-let menuItems = (routes, provider: option(Provider.t)) => {
-  let myRoutes =
-    switch (provider) {
-    | Some(p) => List.keep(routes, (route: Route.t) => route.providerId == p.id)
-    | None => routes
-    };
+let s = ReasonReact.string;
+
+let filterRoutes = (routes, maybeProvider: option(Provider.t)) =>
+  switch (maybeProvider) {
+  | Some(p) => List.keep(routes, (route: Route.t) => route.providerId == p.id)
+  | None => routes
+  };
+
+let menuItems = (routes, provider) => {
+  let myRoutes = filterRoutes(routes, provider);
   List.map(myRoutes, (route: Route.t) =>
-    <MaterialUi.MenuItem key=route.id value=(`String(route.id))>
-      (ReasonReact.string(route.name))
-    </MaterialUi.MenuItem>
+    <MaterialUi.MenuItem key=route.id value=(`String(route.id))> (s(route.name)) </MaterialUi.MenuItem>
   );
+};
+
+let nativeMenuItems = (routes, provider) => {
+  let myRoutes = filterRoutes(routes, provider);
+  List.map(myRoutes, (route: Route.t) => <option key=route.id value=route.id> (s(route.name)) </option>);
 };
 
 let make = (~selected: option(Route.t), ~provider: option(Provider.t), ~setRoute, _childern) => {
@@ -71,12 +78,17 @@ let make = (~selected: option(Route.t), ~provider: option(Provider.t), ~setRoute
         | None => `String("")
         };
       let style = ReactDOMRe.Style.make(~overflow="hidden", ());
+      let select =
+        MaterialUi.(
+          if (Util.isMobile()) {
+            <Select native=true value onChange=routeChange style> (nativeMenuItems(routes, provider)) </Select>;
+          } else {
+            <Select native=false value onChange=routeChange style> (menuItems(routes, provider)) </Select>;
+          }
+        );
       <form autoComplete="off">
         MaterialUi.(
-          <FormControl fullWidth=true>
-            <InputLabel> (ReasonReact.string("Route")) </InputLabel>
-            <Select value onChange=routeChange style> (menuItems(routes, provider)) </Select>
-          </FormControl>
+          <FormControl fullWidth=true> <InputLabel> (ReasonReact.string("Route")) </InputLabel> select </FormControl>
         )
       </form>;
     },

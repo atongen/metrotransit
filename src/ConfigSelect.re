@@ -25,7 +25,7 @@ let menuItems = configs =>
   );
 
 let nativeMenuItems = configs =>
-  List.map(configs, (config: Config.t) => <option value=config.id> (s(config.shortName)) </option>);
+  List.map(configs, (config: Config.t) => <option key=config.id value=config.id> (s(config.shortName)) </option>);
 
 let isEmpty =
   fun
@@ -97,11 +97,19 @@ let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _
           | Some(config) => `String(config.id)
           | None => `String("")
           };
+        let select =
+          if (Util.isMobile()) {
+            <MaterialUi.Select native=true value onChange=configChange>
+              (nativeMenuItems(configs))
+            </MaterialUi.Select>;
+          } else {
+            <MaterialUi.Select native=false value onChange=configChange> (menuItems(configs)) </MaterialUi.Select>;
+          };
         MaterialUi.(
           <form autoComplete="off">
             <FormControl fullWidth=true>
               <InputLabel> (s("Previously Selected Departures")) </InputLabel>
-              <Select native=true value onChange=configChange> (nativeMenuItems(configs)) </Select>
+              select
             </FormControl>
           </form>
         );

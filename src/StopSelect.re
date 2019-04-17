@@ -15,10 +15,15 @@ type action =
 
 let component = ReasonReact.reducerComponent("StopSelect");
 
+let s = ReasonReact.string;
+
 let menuItems = stops =>
   List.map(stops, (stop: Stop.t) =>
-    <MaterialUi.MenuItem key=stop.id value=(`String(stop.id))> (ReasonReact.string(stop.name)) </MaterialUi.MenuItem>
+    <MaterialUi.MenuItem key=stop.id value=(`String(stop.id))> (s(stop.name)) </MaterialUi.MenuItem>
   );
+
+let nativeMenuItems = stops =>
+  List.map(stops, (stop: Stop.t) => <option key=stop.id value=stop.id> (s(stop.name)) </option>);
 
 let make = (~selected: option(Stop.t), ~route: Route.t, ~direction: Direction.t, ~setStop, _childern) => {
   ...component,
@@ -63,12 +68,17 @@ let make = (~selected: option(Stop.t), ~route: Route.t, ~direction: Direction.t,
         | None => `String("")
         };
       let style = ReactDOMRe.Style.make(~overflow="hidden", ());
+      let select =
+        MaterialUi.(
+          if (Util.isMobile()) {
+            <Select native=true value onChange=stopChange style> (nativeMenuItems(stops)) </Select>;
+          } else {
+            <Select native=false value onChange=stopChange style> (menuItems(stops)) </Select>;
+          }
+        );
       <form autoComplete="off">
         MaterialUi.(
-          <FormControl fullWidth=true>
-            <InputLabel> (ReasonReact.string("Stop")) </InputLabel>
-            <Select value onChange=stopChange style> (menuItems(stops)) </Select>
-          </FormControl>
+          <FormControl fullWidth=true> <InputLabel> (s("Stop")) </InputLabel> select </FormControl>
         )
       </form>;
     },

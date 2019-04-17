@@ -15,11 +15,18 @@ type action =
 
 let component = ReasonReact.reducerComponent("DirectionSelect");
 
+let s = ReasonReact.string;
+
 let menuItems = directions =>
   List.map(directions, (direction: Direction.t) =>
     <MaterialUi.MenuItem key=direction.id value=(`String(direction.id))>
-      (ReasonReact.string(Util.capitalize(direction.name)))
+      (s(Util.capitalize(direction.name)))
     </MaterialUi.MenuItem>
+  );
+
+let nativeMenuItems = directions =>
+  List.map(directions, (direction: Direction.t) =>
+    <option key=direction.id value=direction.id> (s(Util.capitalize(direction.name))) </option>
   );
 
 let make = (~selected: option(Direction.t), ~route: Route.t, ~setDirection, _childern) => {
@@ -65,13 +72,15 @@ let make = (~selected: option(Direction.t), ~route: Route.t, ~setDirection, _chi
         | None => `String("")
         };
       let style = ReactDOMRe.Style.make(~overflow="hidden", ());
-      <form autoComplete="off">
+      let select =
         MaterialUi.(
-          <FormControl fullWidth=true>
-            <InputLabel> (ReasonReact.string("Direction")) </InputLabel>
-            <Select value onChange=directionChange style> (menuItems(directions)) </Select>
-          </FormControl>
-        )
+        if (Util.isMobile()) {
+          <Select native=true value onChange=directionChange style> (nativeMenuItems(directions)) </Select>;
+        } else {
+          <Select native=false value onChange=directionChange style> (menuItems(directions)) </Select>;
+        });
+      <form autoComplete="off">
+        MaterialUi.(<FormControl fullWidth=true> <InputLabel> (s("Direction")) </InputLabel> select </FormControl>)
       </form>;
     },
 };

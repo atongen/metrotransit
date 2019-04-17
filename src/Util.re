@@ -119,7 +119,7 @@ let distanceOfTimeInWords = (fromTime, toTime) => {
         } else {
           "less than a minute";
         };
-      } else if (2.0 <= dim && dim < 45.0) {
+      } else if (1.0 <= dim && dim < 45.0) {
         s("%d minutes", r(dim));
       } else if (45.0 <= dim && dim < 90.0) {
         "about 1 hour";
@@ -149,3 +149,10 @@ let distanceOfTimeInWords = (fromTime, toTime) => {
   };
 
 let typography = (~variant=`Body1, s) => MaterialUi.(<Typography variant> (ReasonReact.string(s)) </Typography>);
+
+[@bs.val] [@bs.scope ("window")] external orientation : string = "orientation";
+
+[@bs.val] [@bs.scope ("navigator")] external userAgent : string = "userAgent";
+
+let isMobile = () =>
+    (! Js.Types.(test(orientation, Undefined))) || Js.String.includes("IEMobile", userAgent);
