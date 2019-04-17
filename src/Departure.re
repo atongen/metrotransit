@@ -15,6 +15,23 @@ type t = {
   vehicleLongitude: float,
 };
 
+let toString = (d: t) =>
+  Printf.sprintf(
+    "<Departure actual=%b blockNumber=%d text=%s time=%s name=%s gate=%s routeId=%s directionName=%s terminal=%s vehicleHeading=%d vehicleLatitude=%f vehicleLongitude=%f",
+    d.actual,
+    d.blockNumber,
+    d.text,
+    d.time,
+    d.name,
+    d.gate,
+    d.routeId,
+    d.directionName,
+    d.terminal,
+    d.vehicleHeading,
+    d.vehicleLatitude,
+    d.vehicleLongitude,
+  );
+
 let departureActualKey = "Actual";
 
 let departureBlockNumberKey = "BlockNumber";
@@ -100,6 +117,7 @@ let parseTime = (~offset=0.0, time) =>
   };
 
 let parseLocalTime = time => parseTime(~offset=timeZoneOffset, time);
+
 let id = d =>
   Printf.sprintf("%s-%s-%s-%b-%s", d.name, d.routeId, d.directionName, d.actual, d.time)
   |> Digest.string
