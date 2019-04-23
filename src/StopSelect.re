@@ -54,7 +54,7 @@ let make = (~selected: option(Stop.t), ~route: Route.t, ~direction: Direction.t,
   render: self =>
     switch (self.state) {
     | NotAsked => ReasonReact.null
-    | Loading => Util.typography("Loading providers...")
+    | Loading => Util.typography("Loading stops...")
     | Failure(err) => Util.typography("Something went wrong: " ++ err)
     | Success(stops) =>
       let stopChange = (evt, _el) => {
@@ -67,19 +67,16 @@ let make = (~selected: option(Stop.t), ~route: Route.t, ~direction: Direction.t,
         | Some(stop) => `String(stop.id)
         | None => `String("")
         };
-      let style = ReactDOMRe.Style.make(~overflow="hidden", ());
       let select =
         MaterialUi.(
           if (Util.isMobile()) {
-            <Select native=true value onChange=stopChange style> (nativeMenuItems(stops)) </Select>;
+            <Select native=true value onChange=stopChange> (nativeMenuItems(stops)) </Select>;
           } else {
-            <Select native=false value onChange=stopChange style> (menuItems(stops)) </Select>;
+            <Select native=false value onChange=stopChange> (menuItems(stops)) </Select>;
           }
         );
       <form autoComplete="off">
-        MaterialUi.(
-          <FormControl fullWidth=true> <InputLabel> (s("Stop")) </InputLabel> select </FormControl>
-        )
+        MaterialUi.(<FormControl fullWidth=true> <InputLabel> (s("Stop")) </InputLabel> select </FormControl>)
       </form>;
     },
 };

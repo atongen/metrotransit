@@ -71,14 +71,14 @@ let make = (~selected: option(Direction.t), ~route: Route.t, ~setDirection, _chi
         | Some(direction) => `String(direction.id)
         | None => `String("")
         };
-      let style = ReactDOMRe.Style.make(~overflow="hidden", ());
       let select =
         MaterialUi.(
-        if (Util.isMobile()) {
-          <Select native=true value onChange=directionChange style> (nativeMenuItems(directions)) </Select>;
-        } else {
-          <Select native=false value onChange=directionChange style> (menuItems(directions)) </Select>;
-        });
+          if (Util.isMobile()) {
+            <Select native=true value onChange=directionChange> (nativeMenuItems(directions)) </Select>;
+          } else {
+            <Select native=false value onChange=directionChange> (menuItems(directions)) </Select>;
+          }
+        );
       <form autoComplete="off">
         MaterialUi.(<FormControl fullWidth=true> <InputLabel> (s("Direction")) </InputLabel> select </FormControl>)
       </form>;

@@ -24,15 +24,21 @@ let filterRoutes = (routes, maybeProvider: option(Provider.t)) =>
   };
 
 let menuItems = (routes, provider) => {
+  let emptyOption = <MaterialUi.MenuItem key="" value=(`String("")) />;
   let myRoutes = filterRoutes(routes, provider);
-  List.map(myRoutes, (route: Route.t) =>
-    <MaterialUi.MenuItem key=route.id value=(`String(route.id))> (s(route.name)) </MaterialUi.MenuItem>
-  );
+  let routeOptions =
+    List.map(myRoutes, (route: Route.t) =>
+      <MaterialUi.MenuItem key=route.id value=(`String(route.id))> (s(route.name)) </MaterialUi.MenuItem>
+    );
+  List.add(routeOptions, emptyOption);
 };
 
 let nativeMenuItems = (routes, provider) => {
+  let emptyOption = <option key="" value="" />;
   let myRoutes = filterRoutes(routes, provider);
-  List.map(myRoutes, (route: Route.t) => <option key=route.id value=route.id> (s(route.name)) </option>);
+  let routeOptions =
+    List.map(myRoutes, (route: Route.t) => <option key=route.id value=route.id> (s(route.name)) </option>);
+  List.add(routeOptions, emptyOption);
 };
 
 let make = (~selected: option(Route.t), ~provider: option(Provider.t), ~setRoute, _childern) => {
@@ -77,13 +83,12 @@ let make = (~selected: option(Route.t), ~provider: option(Provider.t), ~setRoute
         | Some(route) => `String(route.id)
         | None => `String("")
         };
-      let style = ReactDOMRe.Style.make(~overflow="hidden", ());
       let select =
         MaterialUi.(
           if (Util.isMobile()) {
-            <Select native=true value onChange=routeChange style> (nativeMenuItems(routes, provider)) </Select>;
+            <Select native=true value onChange=routeChange> (nativeMenuItems(routes, provider)) </Select>;
           } else {
-            <Select native=false value onChange=routeChange style> (menuItems(routes, provider)) </Select>;
+            <Select native=false value onChange=routeChange> (menuItems(routes, provider)) </Select>;
           }
         );
       <form autoComplete="off">

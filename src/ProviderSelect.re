@@ -17,7 +17,11 @@ let component = ReasonReact.reducerComponent("ProviderSelect");
 
 let s = ReasonReact.string;
 
-let allProvider: Provider.t = {id: "all", name: "All"};
+let isMobile = Util.isMobile();
+
+let (allValue, allName) = if (isMobile) {("", "")} else {("all", "All")};
+
+let allProvider: Provider.t = {id: allValue, name: allName};
 
 let menuItems = providers =>
   List.map(List.add(providers, allProvider), (provider: Provider.t) =>
@@ -26,7 +30,7 @@ let menuItems = providers =>
 
 let nativeMenuItems = providers =>
   List.map(List.add(providers, allProvider), (provider: Provider.t) =>
-    <option key=provider.id value=provider.id> (s(provider.name)) </option>
+      <option key=provider.id value=provider.id> (s(provider.name)) </option>
   );
 
 let make = (~selected: option(Provider.t), ~setProvider, _childern) => {
@@ -69,15 +73,14 @@ let make = (~selected: option(Provider.t), ~setProvider, _childern) => {
       let value =
         switch (selected) {
         | Some(provider) => `String(provider.id)
-        | None => `String("all")
+        | None => `String(allValue)
         };
-      let style = ReactDOMRe.Style.make(~overflow="hidden", ());
       let select =
         MaterialUi.(
-          if (Util.isMobile()) {
-            <Select native=true value onChange=providerChange style> (nativeMenuItems(providers)) </Select>;
+          if (isMobile) {
+            <Select native=true value onChange=providerChange> (nativeMenuItems(providers)) </Select>;
           } else {
-            <Select native=false value onChange=providerChange style> (menuItems(providers)) </Select>;
+            <Select native=false value onChange=providerChange> (menuItems(providers)) </Select>;
           }
         );
       <form autoComplete="off">
