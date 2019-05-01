@@ -17,17 +17,25 @@ let component = ReasonReact.reducerComponent("DirectionSelect");
 
 let s = ReasonReact.string;
 
-let menuItems = directions =>
-  List.map(directions, (direction: Direction.t) =>
-    <MaterialUi.MenuItem key=direction.id value=(`String(direction.id))>
-      (s(Util.capitalize(direction.name)))
-    </MaterialUi.MenuItem>
-  );
+let menuItems = directions => {
+  let emptyOption = <MaterialUi.MenuItem key="" value=(`String("")) disabled=true />;
+  let directionOptions =
+    List.map(directions, (direction: Direction.t) =>
+      <MaterialUi.MenuItem key=direction.id value=(`String(direction.id))>
+        (s(Util.capitalize(direction.name)))
+      </MaterialUi.MenuItem>
+    );
+  List.add(directionOptions, emptyOption);
+};
 
-let nativeMenuItems = directions =>
-  List.map(directions, (direction: Direction.t) =>
-    <option key=direction.id value=direction.id> (s(Util.capitalize(direction.name))) </option>
-  );
+let nativeMenuItems = directions => {
+  let emptyOption = <option key="" value="" disabled=true />;
+  let directionOptions =
+    List.map(directions, (direction: Direction.t) =>
+      <option key=direction.id value=direction.id> (s(Util.capitalize(direction.name))) </option>
+    );
+  List.add(directionOptions, emptyOption);
+};
 
 let make = (~selected: option(Direction.t), ~route: Route.t, ~setDirection, _childern) => {
   ...component,

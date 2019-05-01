@@ -17,13 +17,20 @@ let component = ReasonReact.reducerComponent("StopSelect");
 
 let s = ReasonReact.string;
 
-let menuItems = stops =>
-  List.map(stops, (stop: Stop.t) =>
-    <MaterialUi.MenuItem key=stop.id value=(`String(stop.id))> (s(stop.name)) </MaterialUi.MenuItem>
-  );
+let menuItems = stops => {
+  let emptyOption = <MaterialUi.MenuItem key="" value=(`String("")) disabled=true />;
+  let stopOptions =
+    List.map(stops, (stop: Stop.t) =>
+      <MaterialUi.MenuItem key=stop.id value=(`String(stop.id))> (s(stop.name)) </MaterialUi.MenuItem>
+    );
+  List.add(stopOptions, emptyOption);
+};
 
-let nativeMenuItems = stops =>
-  List.map(stops, (stop: Stop.t) => <option key=stop.id value=stop.id> (s(stop.name)) </option>);
+let nativeMenuItems = stops => {
+  let emptyOption = <option key="" value="" disabled=true />;
+  let stopOptions = List.map(stops, (stop: Stop.t) => <option key=stop.id value=stop.id> (s(stop.name)) </option>);
+  List.add(stopOptions, emptyOption);
+};
 
 let make = (~selected: option(Stop.t), ~route: Route.t, ~direction: Direction.t, ~setStop, _childern) => {
   ...component,

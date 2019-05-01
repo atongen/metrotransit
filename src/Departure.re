@@ -122,3 +122,21 @@ let id = d =>
   Printf.sprintf("%s-%s-%s-%b-%s", d.name, d.routeId, d.directionName, d.actual, d.time)
   |> Digest.string
   |> Digest.to_hex;
+
+let displayName = d => {
+  let o = s => {
+    let v = String.trim(s);
+    if (v != "") {
+      Some(v);
+    } else {
+      None;
+    };
+  };
+  let qualifier =
+    switch (o(d.gate), o(d.terminal)) {
+    | (Some(gate), _) => gate
+    | (None, Some(terminal)) => terminal
+    | (None, None) => ""
+    };
+  Printf.sprintf("%s%s: %s", d.routeId, qualifier, d.name);
+};

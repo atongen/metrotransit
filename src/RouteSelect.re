@@ -24,7 +24,7 @@ let filterRoutes = (routes, maybeProvider: option(Provider.t)) =>
   };
 
 let menuItems = (routes, provider) => {
-  let emptyOption = <MaterialUi.MenuItem key="" value=(`String("")) />;
+  let emptyOption = <MaterialUi.MenuItem key="" value=(`String("")) disabled=true />;
   let myRoutes = filterRoutes(routes, provider);
   let routeOptions =
     List.map(myRoutes, (route: Route.t) =>
@@ -34,7 +34,7 @@ let menuItems = (routes, provider) => {
 };
 
 let nativeMenuItems = (routes, provider) => {
-  let emptyOption = <option key="" value="" />;
+  let emptyOption = <option key="" value="" disabled=true />;
   let myRoutes = filterRoutes(routes, provider);
   let routeOptions =
     List.map(myRoutes, (route: Route.t) => <option key=route.id value=route.id> (s(route.name)) </option>);

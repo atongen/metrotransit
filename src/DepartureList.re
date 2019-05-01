@@ -47,14 +47,14 @@ let renderDepartureLi = (departure: Departure.t, asOf) => {
   MaterialUi.(
     <ListItem key>
       <Avatar> <Icon color> (s(icon)) </Icon> </Avatar>
-      <ListItemText primary=(s(departure.name)) secondary=(s(timeStr)) />
+      <ListItemText primary=(s(Departure.displayName(departure))) secondary=(s(timeStr)) />
     </ListItem>
   );
 };
 
 let renderDepartureList = (departures, asOf) =>
   if (List.length(departures) == 0) {
-    MaterialUi.(<Typography variant=`Body1> (s("No departures found!")) </Typography>);
+    Util.typography(~variant=`Body1, "No departures found!");
   } else {
     <MaterialUi.List>
       (List.map(departures, departure => renderDepartureLi(departure, asOf)) |> List.toArray |> ReasonReact.array)
