@@ -132,11 +132,12 @@ let displayName = d => {
       None;
     };
   };
-  let qualifier =
+  let (qualifier, delimiter) =
     switch (o(d.gate), o(d.terminal)) {
-    | (Some(gate), _) => gate
-    | (None, Some(terminal)) => terminal
-    | (None, None) => ""
+    | (Some(gate), Some(_terminal)) => (gate, ":")
+    | (Some(gate), None) => (gate, ":")
+    | (None, Some(terminal)) => (terminal, ":")
+    | (None, None) => ("", "")
     };
-  Printf.sprintf("%s%s: %s", d.routeId, qualifier, d.name);
+  Printf.sprintf("%s%s%s %s", d.routeId, qualifier, delimiter, d.name);
 };
