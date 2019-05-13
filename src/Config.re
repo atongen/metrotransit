@@ -8,9 +8,15 @@ type t = {
   id: configId,
   name: configName,
   shortName: string,
-  route: Route.routeId,
-  direction: Direction.directionId,
-  stop: Stop.stopId,
+  routeId: Route.routeId,
+  route: option(Route.t),
+  routes: list(Route.t),
+  directionId: Direction.directionId,
+  directions: list(Direction.t),
+  direction: option(Direction.t),
+  stopId: Stop.stopId,
+  stop: option(Stop.t),
+  stops: list(Stop.t),
 };
 
 let makeShortName = (route: Route.t, direction: Direction.t, stop: Stop.t) => {
@@ -20,13 +26,19 @@ let makeShortName = (route: Route.t, direction: Direction.t, stop: Stop.t) => {
   Printf.sprintf("%s - %s - %s", r, d, s);
 };
 
-let make = (route: Route.t, direction: Direction.t, stop: Stop.t) => {
+let make = (~routes=[], ~directions=[], ~stops=[], route: Route.t, direction: Direction.t, stop: Stop.t) => {
   id: Printf.sprintf("%s-%s-%s", route.id, direction.id, stop.id),
   name: Printf.sprintf("%s - %s - %s", route.name, Util.capitalize(direction.name), stop.name),
   shortName: makeShortName(route, direction, stop),
-  route: route.id,
-  direction: direction.id,
-  stop: stop.id,
+  routeId: route.id,
+  route: Some(route),
+  routes,
+  directionId: direction.id,
+  direction: Some(direction),
+  directions,
+  stopId: stop.id,
+  stop: Some(stop),
+  stops,
 };
 
 let maybeMake = (maybeRoute: option(Route.t), maybeDirection: option(Direction.t), maybeStop: option(Stop.t)) =>
@@ -60,7 +72,7 @@ let load = (routeId: Route.routeId, directionId: Direction.directionId, stopId: 
                              | Ok(stops) =>
                                let maybeStop = List.getBy(stops, (stop: Stop.t) => stop.id == stopId);
                                switch (maybeStop) {
-                               | Some(stop) => resolve(Ok(m(route, direction, stop)))
+                               | Some(stop) => resolve(Ok(m(~routes, ~directions, ~stops, route, direction, stop)))
                                | None => resolve(Error("stop id not found"))
                                };
                              | Error(_err) as e => resolve(e)
@@ -98,20 +110,26 @@ let configNameKey = "n";
 
 let configShortNameKey = "sn";
 
-let configRouteKey = "r";
+let configRouteIdKey = "r";
 
-let configDirectionKey = "d";
+let configDirectionIdKey = "d";
 
-let configStopKey = "s";
+let configStopIdKey = "s";
 
 let decodeConfig = str =>
   Json.Decode.{
     id: str |> field(configIdKey, string),
     name: str |> field(configNameKey, string),
     shortName: str |> field(configShortNameKey, string),
-    route: str |> field(configRouteKey, string),
-    direction: str |> field(configDirectionKey, string),
-    stop: str |> field(configStopKey, string),
+    routeId: str |> field(configRouteIdKey, string),
+    route: None,
+    routes: [],
+    directionId: str |> field(configDirectionIdKey, string),
+    direction: None,
+    directions: [],
+    stopId: str |> field(configStopIdKey, string),
+    stop: None,
+    stops: [],
   };
 
 let encodeConfig = c =>
@@ -120,9 +138,9 @@ let encodeConfig = c =>
       (configIdKey, string(c.id)),
       (configNameKey, string(c.name)),
       (configShortNameKey, string(c.shortName)),
-      (configRouteKey, string(c.route)),
-      (configDirectionKey, string(c.direction)),
-      (configStopKey, string(c.stop)),
+      (configRouteIdKey, string(c.routeId)),
+      (configDirectionIdKey, string(c.directionId)),
+      (configStopIdKey, string(c.stopId)),
     ])
   );
 

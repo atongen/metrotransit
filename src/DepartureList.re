@@ -101,7 +101,7 @@ let make = (~config: Config.t, _childern) => {
             self => {
               let c = self.state.config;
               Js.Promise.(
-                ApiUri.loadTimepointDepartures(c.route, c.direction, c.stop)
+                ApiUri.loadTimepointDepartures(c.routeId, c.directionId, c.stopId)
                 |> then_(result =>
                      switch (result) {
                      | Ok(departures) => resolve(self.send(LoadedDepartures(departures)))
