@@ -6,38 +6,34 @@ type configName = string;
 
 type t = {
   id: configId,
-  name: configName,
-  shortName: string,
-  routeId: Route.routeId,
-  route: option(Route.t),
+  route: Route.t,
   routes: list(Route.t),
-  directionId: Direction.directionId,
+  direction: Direction.t,
   directions: list(Direction.t),
-  direction: option(Direction.t),
-  stopId: Stop.stopId,
-  stop: option(Stop.t),
+  stop: Stop.t,
   stops: list(Stop.t),
 };
 
-let makeShortName = (route: Route.t, direction: Direction.t, stop: Stop.t) => {
-  let r = Util.truncateByToken(route.name, 2);
-  let d = Js.String.replace("bound", "", Util.capitalize(direction.name));
-  let s = Util.truncateByToken(stop.name, 2);
+let name = config =>
+  Printf.sprintf("%s - %s - %s", config.route.name, Util.capitalize(config.direction.name), config.stop.name);
+
+let shortName = config => {
+  let r = Util.truncateByToken(config.route.name, 2);
+  let d = Js.String.replace("bound", "", Util.capitalize(config.direction.name));
+  let s = Util.truncateByToken(config.stop.name, 2);
   Printf.sprintf("%s - %s - %s", r, d, s);
 };
 
+let makeId = (route: Route.t, direction: Direction.t, stop: Stop.t) =>
+  Printf.sprintf("%s-%s-%s", route.id, direction.id, stop.id);
+
 let make = (~routes=[], ~directions=[], ~stops=[], route: Route.t, direction: Direction.t, stop: Stop.t) => {
-  id: Printf.sprintf("%s-%s-%s", route.id, direction.id, stop.id),
-  name: Printf.sprintf("%s - %s - %s", route.name, Util.capitalize(direction.name), stop.name),
-  shortName: makeShortName(route, direction, stop),
-  routeId: route.id,
-  route: Some(route),
+  id: makeId(route, direction, stop),
+  route,
   routes,
-  directionId: direction.id,
-  direction: Some(direction),
+  direction,
   directions,
-  stopId: stop.id,
-  stop: Some(stop),
+  stop,
   stops,
 };
 
@@ -104,19 +100,15 @@ let fromHash = hash => {
   };
 };
 
-let configIdKey = "i";
+let configRouteKey = "r";
 
-let configNameKey = "n";
+let configDirectionKey = "d";
 
-let configShortNameKey = "sn";
+let configStopKey = "s";
 
-let configRouteIdKey = "r";
-
-let configDirectionIdKey = "d";
-
-let configStopIdKey = "s";
-
-let decodeConfig = str =>
+/* HERE */
+let decodeConfig = str => {
+  let routeJson = Json.Decode.(str |> field(configRouteKey, option(string)));
   Json.Decode.{
     id: str |> field(configIdKey, string),
     name: str |> field(configNameKey, string),
@@ -131,6 +123,7 @@ let decodeConfig = str =>
     stop: None,
     stops: [],
   };
+};
 
 let encodeConfig = c =>
   Json.Encode.(
