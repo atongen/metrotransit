@@ -9,6 +9,12 @@ type t = {
 
 let make = (stopId, stopName) => {id: stopId, name: stopName};
 
+let maybeMake = (maybeStopId, maybeStopName) =>
+  switch (maybeStopId, maybeStopName) {
+  | (Some(stopId), Some(stopName)) => Some(make(stopId, stopName))
+  | _ => None
+  };
+
 let stopIdKey = "Value";
 
 let stopNameKey = "Text";

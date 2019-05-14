@@ -100,40 +100,45 @@ let fromHash = hash => {
   };
 };
 
-let configRouteKey = "r";
+let routeIdKey = "ri";
 
-let configDirectionKey = "d";
+let routeNameKey = "rn";
 
-let configStopKey = "s";
+let routeProviderIdKey = "rp";
 
-/* HERE */
+let directionIdKey = "di";
+
+let directionNameKey = "dn";
+
+let stopIdKey = "si";
+
+let stopNameKey = "sn";
+
 let decodeConfig = str => {
-  let routeJson = Json.Decode.(str |> field(configRouteKey, option(string)));
-  Json.Decode.{
-    id: str |> field(configIdKey, string),
-    name: str |> field(configNameKey, string),
-    shortName: str |> field(configShortNameKey, string),
-    routeId: str |> field(configRouteIdKey, string),
-    route: None,
-    routes: [],
-    directionId: str |> field(configDirectionIdKey, string),
-    direction: None,
-    directions: [],
-    stopId: str |> field(configStopIdKey, string),
-    stop: None,
-    stops: [],
-  };
+  open Json.Decode;
+  let routeId = str |> field(routeIdKey, string);
+  let routeName = str |> field(routeNameKey, string);
+  let routeProviderId = str |> field(routeProviderIdKey, string);
+  let route = Route.make(routeId, routeName, routeProviderId);
+  let directionId = str |> field(directionIdKey, string);
+  let directionName = str |> field(directionNameKey, string);
+  let direction = Direction.make(directionId, directionName);
+  let stopId = str |> field(stopIdKey, string);
+  let stopName = str |> field(stopNameKey, string);
+  let stop = Stop.make(stopId, stopName);
+  make(route, direction, stop);
 };
 
 let encodeConfig = c =>
   Json.Encode.(
     object_([
-      (configIdKey, string(c.id)),
-      (configNameKey, string(c.name)),
-      (configShortNameKey, string(c.shortName)),
-      (configRouteIdKey, string(c.routeId)),
-      (configDirectionIdKey, string(c.directionId)),
-      (configStopIdKey, string(c.stopId)),
+      (routeIdKey, string(c.route.id)),
+      (routeNameKey, string(c.route.name)),
+      (routeProviderIdKey, string(c.route.providerId)),
+      (directionIdKey, string(c.direction.id)),
+      (directionNameKey, string(c.direction.name)),
+      (stopIdKey, string(c.stop.id)),
+      (stopNameKey, string(c.stop.name)),
     ])
   );
 

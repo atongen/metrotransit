@@ -21,11 +21,15 @@ let s = ReasonReact.string;
 
 let menuItems = configs =>
   List.map(configs, (config: Config.t) =>
-    <MaterialUi.MenuItem key=config.id value=(`String(config.id))> (s(config.shortName)) </MaterialUi.MenuItem>
+    <MaterialUi.MenuItem key=config.id value=(`String(config.id))>
+      (s(Config.shortName(config)))
+    </MaterialUi.MenuItem>
   );
 
 let nativeMenuItems = configs =>
-  List.map(configs, (config: Config.t) => <option key=config.id value=config.id> (s(config.shortName)) </option>);
+  List.map(configs, (config: Config.t) =>
+    <option key=config.id value=config.id> (s(Config.shortName(config))) </option>
+  );
 
 let isEmpty =
   fun
@@ -36,7 +40,7 @@ let makePanelSummary = (selected: option(Config.t)) => {
   let expandIcon = MaterialUi.(<Icon> (s("expand_more")) </Icon>);
   let (name, color) =
     switch (selected) {
-    | Some(config) => (config.shortName, `Primary)
+    | Some(config) => (Config.shortName(config), `Primary)
     | None => ("Select Departure", `Secondary)
     };
   MaterialUi.(

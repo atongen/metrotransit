@@ -9,6 +9,12 @@ type t = {
 
 let make = (directionId, directionName) => {id: directionId, name: directionName};
 
+let maybeMake = (maybeDirectionId, maybeDirectionName) =>
+  switch (maybeDirectionId, maybeDirectionName) {
+  | (Some(directionId), Some(directionName)) => Some(make(directionId, directionName))
+  | _ => None
+  };
+
 let directionIdKey = "Value";
 
 let directionNameKey = "Text";

@@ -10,6 +10,12 @@ type t = {
 
 let make = (routeId, routeName, providerId) => {id: routeId, name: routeName, providerId};
 
+let maybeMake = (maybeRouteId, maybeRouteName, maybeProviderId) =>
+  switch (maybeRouteId, maybeRouteName, maybeProviderId) {
+  | (Some(routeId), Some(routeName), Some(providerId)) => Some(make(routeId, routeName, providerId))
+  | _ => None
+  };
+
 let routeIdKey = "Route";
 
 let routeNameKey = "Description";
