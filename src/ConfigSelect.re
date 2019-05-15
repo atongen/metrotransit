@@ -1,16 +1,24 @@
 open Belt;
 
 type action =
+  | SetProviders(list(Provider.t))
   | SetProvider(option(Provider.t))
+  | SetRoutes(list(Route.t))
   | SetRoute(option(Route.t))
+  | SetDirections(list(Direction.t))
   | SetDirection(option(Direction.t))
+  | SetStops(list(Stop.t))
   | SetStop(option(Stop.t))
   | SetExpanded(bool);
 
 type state = {
+  providers: list(Provider.t),
   provider: option(Provider.t),
+  routes: list(Route.t),
   route: option(Route.t),
+  directions: list(Direction.t),
   direction: option(Direction.t),
+  stops: list(Stop.t),
   stop: option(Stop.t),
   expanded: bool,
 };
@@ -36,11 +44,23 @@ let isEmpty =
   | Some(_) => false
   | None => true;
 
-let makePanelSummary = (selected: option(Config.t)) => {
+let makeInitialState = expanded => {
+  providers: [],
+  provider: None,
+  routes: [],
+  route: None,
+  directions: [],
+  direction: None,
+  stops: [],
+  stop: None,
+  expanded,
+};
+
+let makePanelSummary = (config: option(Config.t)) => {
   let expandIcon = MaterialUi.(<Icon> (s("expand_more")) </Icon>);
   let (name, color) =
-    switch (selected) {
-    | Some(config) => (Config.shortName(config), `Primary)
+    switch (config) {
+    | Some(c) => (Config.shortName(c), `Primary)
     | None => ("Select Departure", `Secondary)
     };
   MaterialUi.(
@@ -50,7 +70,8 @@ let makePanelSummary = (selected: option(Config.t)) => {
   );
 };
 
-let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _children) => {
+/* HERE */
+let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _children) => {
   ...component,
   reducer: (action, state) =>
     switch (action) {
@@ -58,32 +79,30 @@ let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _
     | SetRoute(route) => ReasonReact.Update({...state, route, direction: None, stop: None})
     | SetDirection(direction) => ReasonReact.Update({...state, direction, stop: None})
     | SetStop(stop) =>
-      let maybeConfig = Config.maybeMake(state.route, state.direction, stop);
+      let maybeConfig =
+        Config.maybeMake(
+          ~routes=state.routes,
+          ~directions=state.directions,
+          ~stops=state.stops,
+          state.route,
+          state.direction,
+          stop,
+        );
       switch (maybeConfig) {
       | Some(config) =>
         ReasonReact.UpdateWithSideEffects({...state, stop, expanded: false}, (_state => setConfig(config)))
-      | None => ReasonReact.Update({provider: None, route: None, direction: None, stop: None, expanded: true})
+      | None => ReasonReact.Update(makeInitialState(true))
       };
     | SetExpanded(expanded) => ReasonReact.Update({...state, expanded})
     },
-  initialState: () => {provider: None, route: None, direction: None, stop: None, expanded: isEmpty(selected)},
-  willReceiveProps: self => {...self.state, expanded: isEmpty(selected)},
+  initialState: () => makeInitialState(isEmpty(config)),
+  willReceiveProps: self => {...self.state, expanded: isEmpty(config)},
   render: self => {
-    let setProvider = provider => self.ReasonReact.send(SetProvider(provider));
-    let setRoute = route => self.send(SetRoute(route));
-    let setDirection = direction => self.send(SetDirection(direction));
-    let setStop = stop => self.send(SetStop(stop));
+    let setProvider = (providers, provider) => self.ReasonReact.send(SetProvider(providers, provider));
+    let setRoute = (routes, route) => self.send(SetRoute(routes, route));
+    let setDirection = (directions, direction) => self.send(SetDirection(directions, direction));
+    let setStop = (stops, stop) => self.send(SetStop(stops, stop));
     let toggleExpanded = (_f, _e) => self.send(SetExpanded(! self.state.expanded));
-    let directionSelect =
-      switch (self.state.route) {
-      | Some(route) => <DirectionSelect selected=self.state.direction route setDirection />
-      | None => ReasonReact.null
-      };
-    let stopSelect =
-      switch (self.state.route, self.state.direction) {
-      | (Some(r), Some(d)) => <StopSelect selected=self.state.stop route=r direction=d setStop />
-      | _ => ReasonReact.null
-      };
     let configChange = (evt, _el) => {
       let configId = ReactEvent.Form.target(evt)##value;
       let maybeConfig = List.getBy(configs, config => config.id == configId);
@@ -97,8 +116,8 @@ let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _
     let configSelect =
       if (List.length(configs) > 1) {
         let value =
-          switch (selected) {
-          | Some(config) => `String(config.id)
+          switch (config) {
+          | Some(c) => `String(c.id)
           | None => `String("")
           };
         let select =
@@ -120,7 +139,7 @@ let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _
       } else {
         ReasonReact.null;
       };
-    let panelSummary = makePanelSummary(selected);
+    let panelSummary = makePanelSummary(config);
     MaterialUi.(
       <ExpansionPanel expanded=self.state.expanded onChange=toggleExpanded>
         panelSummary
@@ -129,10 +148,21 @@ let make = (~selected: option(Config.t), ~configs: list(Config.t), ~setConfig, _
             <Grid item=true xs=V12> configSelect </Grid>
             <Grid item=true xs=V12>
               <Typography variant=`H6> (s("Select New Departure")) </Typography>
-              <ProviderSelect selected=self.state.provider setProvider />
-              <RouteSelect selected=self.state.route provider=self.state.provider setRoute />
-              directionSelect
-              stopSelect
+              <ProviderSelect provider=self.state.provider providers=self.state.providers setProvider />
+              <RouteSelect route=self.state.route routes=self.state.routes provider=self.state.provider setRoute />
+              <DirectionSelect
+                direction=self.state.direction
+                directions=self.state.directions
+                route=self.state.route
+                setDirection
+              />
+              <StopSelect
+                stop=self.state.stop
+                stops=self.state.stops
+                route=self.state.route
+                direction=self.state.direction
+                setStop
+              />
             </Grid>
           </Grid>
         </ExpansionPanelDetails>

@@ -37,9 +37,18 @@ let make = (~routes=[], ~directions=[], ~stops=[], route: Route.t, direction: Di
   stops,
 };
 
-let maybeMake = (maybeRoute: option(Route.t), maybeDirection: option(Direction.t), maybeStop: option(Stop.t)) =>
+let maybeMake =
+    (
+      ~routes=[],
+      ~directions=[],
+      ~stops=[],
+      maybeRoute: option(Route.t),
+      maybeDirection: option(Direction.t),
+      maybeStop: option(Stop.t),
+    ) =>
   switch (maybeRoute, maybeDirection, maybeStop) {
-  | (Some(route), Some(direction), Some(stop)) => Some(make(route, direction, stop))
+  | (Some(route), Some(direction), Some(stop)) =>
+    Some(make(~routes, ~directions, ~stops, route, direction, stop))
   | _ => None
   };
 

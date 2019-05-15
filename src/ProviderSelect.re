@@ -19,7 +19,12 @@ let s = ReasonReact.string;
 
 let isMobile = Util.isMobile();
 
-let (allValue, allName) = if (isMobile) {("", "")} else {("all", "All")};
+let (allValue, allName) =
+  if (isMobile) {
+    ("", "");
+  } else {
+    ("all", "All");
+  };
 
 let allProvider: Provider.t = {id: allValue, name: allName};
 
@@ -30,10 +35,10 @@ let menuItems = providers =>
 
 let nativeMenuItems = providers =>
   List.map(List.add(providers, allProvider), (provider: Provider.t) =>
-      <option key=provider.id value=provider.id> (s(provider.name)) </option>
+    <option key=provider.id value=provider.id> (s(provider.name)) </option>
   );
 
-let make = (~selected: option(Provider.t), ~setProvider, _childern) => {
+let make = (~provider: option(Provider.t), ~providers: list(Provider.t), ~setProvider, _childern) => {
   ...component,
   initialState: () => NotAsked,
   reducer: (action, _state) =>
