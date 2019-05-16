@@ -70,14 +70,17 @@ let makePanelSummary = (config: option(Config.t)) => {
   );
 };
 
-/* HERE */
 let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _children) => {
   ...component,
   reducer: (action, state) =>
     switch (action) {
+    | SetProviders(providers) => ReasonReact.Update({...state, providers, route: None, direction: None, stop: None})
     | SetProvider(provider) => ReasonReact.Update({...state, provider, route: None, direction: None, stop: None})
+    | SetRoutes(routes) => ReasonReact.Update({...state, routes, direction: None, stop: None})
     | SetRoute(route) => ReasonReact.Update({...state, route, direction: None, stop: None})
+    | SetDirections(directions) => ReasonReact.Update({...state, directions, stop: None})
     | SetDirection(direction) => ReasonReact.Update({...state, direction, stop: None})
+    | SetStops(stops) => ReasonReact.Update({...state, stops})
     | SetStop(stop) =>
       let maybeConfig =
         Config.maybeMake(
@@ -98,10 +101,14 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
   initialState: () => makeInitialState(isEmpty(config)),
   willReceiveProps: self => {...self.state, expanded: isEmpty(config)},
   render: self => {
-    let setProvider = (providers, provider) => self.ReasonReact.send(SetProvider(providers, provider));
-    let setRoute = (routes, route) => self.send(SetRoute(routes, route));
-    let setDirection = (directions, direction) => self.send(SetDirection(directions, direction));
-    let setStop = (stops, stop) => self.send(SetStop(stops, stop));
+    let setProviders = providers => self.ReasonReact.send(SetProviders(providers));
+    let setProvider = provider => self.ReasonReact.send(SetProvider(provider));
+    let setRoutes = routes => self.send(SetRoutes(routes));
+    let setRoute = route => self.send(SetRoute(route));
+    let setDirections = directions => self.send(SetDirections(directions));
+    let setDirection = direction => self.send(SetDirection(direction));
+    let setStops = stops => self.send(SetStops(stops));
+    let setStop = stop => self.send(SetStop(stop));
     let toggleExpanded = (_f, _e) => self.send(SetExpanded(! self.state.expanded));
     let configChange = (evt, _el) => {
       let configId = ReactEvent.Form.target(evt)##value;
@@ -148,12 +155,19 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
             <Grid item=true xs=V12> configSelect </Grid>
             <Grid item=true xs=V12>
               <Typography variant=`H6> (s("Select New Departure")) </Typography>
-              <ProviderSelect provider=self.state.provider providers=self.state.providers setProvider />
-              <RouteSelect route=self.state.route routes=self.state.routes provider=self.state.provider setRoute />
+              <ProviderSelect provider=self.state.provider providers=self.state.providers setProviders setProvider />
+              <RouteSelect
+                route=self.state.route
+                routes=self.state.routes
+                provider=self.state.provider
+                setRoutes
+                setRoute
+              />
               <DirectionSelect
                 direction=self.state.direction
                 directions=self.state.directions
                 route=self.state.route
+                setDirections
                 setDirection
               />
               <StopSelect
@@ -161,6 +175,7 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
                 stops=self.state.stops
                 route=self.state.route
                 direction=self.state.direction
+                setStops
                 setStop
               />
             </Grid>

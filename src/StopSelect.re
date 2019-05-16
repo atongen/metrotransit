@@ -9,7 +9,7 @@ type state =
   | Success(list(Stop.t));
 
 type action =
-  | LoadStops
+  | LoadStops(Route.routeId, Direction.directionId)
   | LoadedStops(list(Stop.t))
   | LoadStopsFailed(string);
 
@@ -32,18 +32,27 @@ let nativeMenuItems = stops => {
   List.add(stopOptions, emptyOption);
 };
 
-let make = (~selected: option(Stop.t), ~route: Route.t, ~direction: Direction.t, ~setStop, _childern) => {
+let make =
+    (
+      ~stop: option(Stop.t),
+      ~route: option(Route.t),
+      ~direction: option(Direction.t),
+      ~stops: list(Stop.t),
+      ~setStops,
+      ~setStop,
+      _childern,
+    ) => {
   ...component,
-  initialState: () => NotAsked,
+  initialState: () => Success(stops),
   reducer: (action, _state) =>
     switch (action) {
-    | LoadStops =>
+    | LoadStops(routeId, directionId) =>
       ReasonReact.UpdateWithSideEffects(
         Loading,
         (
           self =>
             Js.Promise.(
-              ApiUri.loadStops(route.id, direction.id)
+              ApiUri.loadStops(routeId, directionId)
               |> then_(result =>
                    switch (result) {
                    | Ok(stops) => resolve(self.send(LoadedStops(stops)))
@@ -54,10 +63,14 @@ let make = (~selected: option(Stop.t), ~route: Route.t, ~direction: Direction.t,
             )
         ),
       )
-    | LoadedStops(stops) => ReasonReact.Update(Success(stops))
+    | LoadedStops(stops) => ReasonReact.UpdateWithSideEffects(Success(stops), (_self => setStops(stops)))
     | LoadStopsFailed(err) => ReasonReact.Update(Failure(err))
     },
-  didMount: self => self.send(LoadStops),
+  didMount: self =>
+    switch (route, direction) {
+    | (Some(r), Some(d)) => self.send(LoadStops(r.id, d.id))
+    | _ => ()
+    },
   render: self =>
     switch (self.state) {
     | NotAsked => ReasonReact.null
@@ -70,7 +83,7 @@ let make = (~selected: option(Stop.t), ~route: Route.t, ~direction: Direction.t,
         setStop(stop);
       };
       let value =
-        switch (selected) {
+        switch (stop) {
         | Some(stop) => `String(stop.id)
         | None => `String("")
         };

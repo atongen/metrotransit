@@ -38,9 +38,9 @@ let nativeMenuItems = providers =>
     <option key=provider.id value=provider.id> (s(provider.name)) </option>
   );
 
-let make = (~provider: option(Provider.t), ~providers: list(Provider.t), ~setProvider, _childern) => {
+let make = (~provider: option(Provider.t), ~providers: list(Provider.t), ~setProviders, ~setProvider, _childern) => {
   ...component,
-  initialState: () => NotAsked,
+  initialState: () => Success(providers),
   reducer: (action, _state) =>
     switch (action) {
     | LoadProviders =>
@@ -60,7 +60,8 @@ let make = (~provider: option(Provider.t), ~providers: list(Provider.t), ~setPro
             )
         ),
       )
-    | LoadedProviders(providers) => ReasonReact.Update(Success(providers))
+    | LoadedProviders(providers) =>
+      ReasonReact.UpdateWithSideEffects(Success(providers), (_self => setProviders(providers)))
     | LoadProvidersFailed(err) => ReasonReact.Update(Failure(err))
     },
   didMount: self => self.send(LoadProviders),
@@ -76,7 +77,7 @@ let make = (~provider: option(Provider.t), ~providers: list(Provider.t), ~setPro
         setProvider(provider);
       };
       let value =
-        switch (selected) {
+        switch (provider) {
         | Some(provider) => `String(provider.id)
         | None => `String(allValue)
         };

@@ -85,7 +85,7 @@ let make = _children => {
     | None => ReasonReact.null
     };
     <div>
-        <ConfigSelect selected=self.state.config configs=self.state.configs setConfig />
+        <ConfigSelect config=self.state.config configs=self.state.configs setConfig />
         departureList
     </div>;
   },
