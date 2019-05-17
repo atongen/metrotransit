@@ -1,17 +1,6 @@
 open Belt;
 
-open Belt.Result;
-
-type state = {
-  routes: list(Route.t)
-};
-
-type action =
-  | LoadRoutes
-  | LoadedRoutes(list(Route.t))
-  | LoadRoutesFailed(string);
-
-let component = ReasonReact.reducerComponent("RouteSelect");
+let component = ReasonReact.statelessComponent("RouteSelect");
 
 let s = ReasonReact.string;
 
@@ -39,64 +28,31 @@ let nativeMenuItems = (routes, provider) => {
   List.add(routeOptions, emptyOption);
 };
 
-/* HERE */
-let make =
-    (
-      ~route: option(Route.t),
-      ~routes: list(Route.t),
-      ~provider: option(Provider.t),
-      ~setRoutes,
-      ~setRoute,
-      _childern,
-    ) => {
+let make = (~route: option(Route.t), ~routes: list(Route.t), ~provider: option(Provider.t), ~setRoute, _childern) => {
   ...component,
-  initialState: () => {routes},
-  reducer: (action, _state) =>
-    switch (action) {
-    | LoadRoutes =>
-      ReasonReact.SideEffects(
-        (
-          self =>
-            Js.Promise.(
-              ApiUri.loadRoutes()
-              |> then_(result =>
-                   switch (result) {
-                   | Ok(routes) => resolve(self.send(LoadedRoutes(routes)))
-                   | Error(err) => resolve(self.send(LoadRoutesFailed(err)))
-                   }
-                 )
-              |> ignore
-            )
-        ),
-      )
-    | LoadedRoutes(routes) => ReasonReact.UpdateWithSideEffects({routes}, (_self => setRoutes(routes)))
-    | LoadRoutesFailed(err) => ReasonReact.SideEffects(_self => Js.log("Error loading routes: " ++ err))
-    },
-  didMount: self => self.send(LoadRoutes),
-  willReceiveProps: _self => {routes},
   render: self => {
-      let routeChange = (evt, _el) => {
-        let routeId = ReactEvent.Form.target(evt)##value;
-        let route = List.getBy(self.state.routes, route => route.id == routeId);
-        setRoute(route);
+    let routeChange = (evt, _el) => {
+      let routeId = ReactEvent.Form.target(evt)##value;
+      let route = List.getBy(routes, route => route.id == routeId);
+      setRoute(route);
+    };
+    let value =
+      switch (route) {
+      | Some(route) => `String(route.id)
+      | None => `String("")
       };
-      let value =
-        switch (route) {
-        | Some(route) => `String(route.id)
-        | None => `String("")
-        };
-      let select =
-        MaterialUi.(
-          if (Util.isMobile()) {
-            <Select native=true value onChange=routeChange> (nativeMenuItems(self.state.routes, provider)) </Select>;
-          } else {
-            <Select native=false value onChange=routeChange> (menuItems(self.state.routes, provider)) </Select>;
-          }
-        );
-      <form autoComplete="off">
-        MaterialUi.(
-          <FormControl fullWidth=true> <InputLabel> (ReasonReact.string("Route")) </InputLabel> select </FormControl>
-        )
-      </form>
-    }
+    let select =
+      MaterialUi.(
+        if (Util.isMobile()) {
+          <Select native=true value onChange=routeChange> (nativeMenuItems(routes, provider)) </Select>;
+        } else {
+          <Select native=false value onChange=routeChange> (menuItems(routes, provider)) </Select>;
+        }
+      );
+    <form autoComplete="off">
+      MaterialUi.(
+        <FormControl fullWidth=true> <InputLabel> (ReasonReact.string("Route")) </InputLabel> select </FormControl>
+      )
+    </form>;
+  },
 };

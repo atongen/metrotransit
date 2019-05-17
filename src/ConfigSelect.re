@@ -1,12 +1,18 @@
 open Belt;
 
+open Belt.Result;
+
 type action =
+  | LoadProviders
   | SetProviders(list(Provider.t))
   | SetProvider(option(Provider.t))
+  | LoadRoutes
   | SetRoutes(list(Route.t))
   | SetRoute(option(Route.t))
+  | LoadDirections(Route.t)
   | SetDirections(list(Direction.t))
   | SetDirection(option(Direction.t))
+  | LoadStops(Route.t, Direction.t)
   | SetStops(list(Stop.t))
   | SetStop(option(Stop.t))
   | SetExpanded(bool);
@@ -39,22 +45,31 @@ let nativeMenuItems = configs =>
     <option key=config.id value=config.id> (s(Config.shortName(config))) </option>
   );
 
-let isEmpty =
-  fun
-  | Some(_) => false
-  | None => true;
-
-let makeInitialState = expanded => {
-  providers: [],
-  provider: None,
-  routes: [],
-  route: None,
-  directions: [],
-  direction: None,
-  stops: [],
-  stop: None,
-  expanded,
-};
+let makeState = (maybeConfig: option(Config.t)) =>
+  switch (maybeConfig) {
+  | Some(config) => {
+      providers: [],
+      provider: None,
+      routes: config.routes,
+      route: Some(config.route),
+      directions: config.directions,
+      direction: Some(config.direction),
+      stops: config.stops,
+      stop: Some(config.stop),
+      expanded: false,
+    }
+  | None => {
+      providers: [],
+      provider: None,
+      routes: [],
+      route: None,
+      directions: [],
+      direction: None,
+      stops: [],
+      stop: None,
+      expanded: true,
+    }
+  };
 
 let makePanelSummary = (config: option(Config.t)) => {
   let expandIcon = MaterialUi.(<Icon> (s("expand_more")) </Icon>);
@@ -74,8 +89,40 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
   ...component,
   reducer: (action, state) =>
     switch (action) {
+    | LoadProviders =>
+      ReasonReact.SideEffects(
+        (
+          self =>
+            Js.Promise.(
+              ApiUri.loadProviders()
+              |> then_(result =>
+                   switch (result) {
+                   | Ok(providers) => resolve(self.send(SetProviders(providers)))
+                   | Error(err) => resolve(Js.log("Loading providers failed: " ++ err))
+                   }
+                 )
+              |> ignore
+            )
+        ),
+      )
     | SetProviders(providers) => ReasonReact.Update({...state, providers, route: None, direction: None, stop: None})
     | SetProvider(provider) => ReasonReact.Update({...state, provider, route: None, direction: None, stop: None})
+    | LoadRoutes =>
+      ReasonReact.SideEffects(
+        (
+          self =>
+            Js.Promise.(
+              ApiUri.loadRoutes()
+              |> then_(result =>
+                   switch (result) {
+                   | Ok(routes) => resolve(self.send(SetRoutes(routes)))
+                   | Error(err) => resolve(Js.log("Loading routes failed: " ++ err))
+                   }
+                 )
+              |> ignore
+            )
+        ),
+      )
     | SetRoutes(routes) => ReasonReact.Update({...state, routes, direction: None, stop: None})
     | SetRoute(route) => ReasonReact.Update({...state, route, direction: None, stop: None})
     | SetDirections(directions) => ReasonReact.Update({...state, directions, stop: None})
@@ -94,20 +141,17 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
       switch (maybeConfig) {
       | Some(config) =>
         ReasonReact.UpdateWithSideEffects({...state, stop, expanded: false}, (_state => setConfig(config)))
-      | None => ReasonReact.Update(makeInitialState(true))
+      | None => ReasonReact.Update({...state, stop: None, expanded: true})
       };
     | SetExpanded(expanded) => ReasonReact.Update({...state, expanded})
     },
-  initialState: () => makeInitialState(isEmpty(config)),
-  willReceiveProps: self => {...self.state, expanded: isEmpty(config)},
+  initialState: () => makeState(config),
+  didMount: self => self.send(LoadProviders),
+  willReceiveProps: self => makeState(config),
   render: self => {
-    let setProviders = providers => self.ReasonReact.send(SetProviders(providers));
     let setProvider = provider => self.ReasonReact.send(SetProvider(provider));
-    let setRoutes = routes => self.send(SetRoutes(routes));
     let setRoute = route => self.send(SetRoute(route));
-    let setDirections = directions => self.send(SetDirections(directions));
     let setDirection = direction => self.send(SetDirection(direction));
-    let setStops = stops => self.send(SetStops(stops));
     let setStop = stop => self.send(SetStop(stop));
     let toggleExpanded = (_f, _e) => self.send(SetExpanded(! self.state.expanded));
     let configChange = (evt, _el) => {
@@ -155,19 +199,12 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
             <Grid item=true xs=V12> configSelect </Grid>
             <Grid item=true xs=V12>
               <Typography variant=`H6> (s("Select New Departure")) </Typography>
-              <ProviderSelect provider=self.state.provider providers=self.state.providers setProviders setProvider />
-              <RouteSelect
-                route=self.state.route
-                routes=self.state.routes
-                provider=self.state.provider
-                setRoutes
-                setRoute
-              />
+              <ProviderSelect provider=self.state.provider providers=self.state.providers setProvider />
+              <RouteSelect route=self.state.route routes=self.state.routes provider=self.state.provider setRoute />
               <DirectionSelect
                 direction=self.state.direction
                 directions=self.state.directions
                 route=self.state.route
-                setDirections
                 setDirection
               />
               <StopSelect
@@ -175,7 +212,6 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
                 stops=self.state.stops
                 route=self.state.route
                 direction=self.state.direction
-                setStops
                 setStop
               />
             </Grid>
