@@ -1,19 +1,6 @@
 open Belt;
 
-open Belt.Result;
-
-type state =
-  | NotAsked
-  | Loading
-  | Failure(string)
-  | Success(list(Stop.t));
-
-type action =
-  | LoadStops(Route.routeId, Direction.directionId)
-  | LoadedStops(list(Stop.t))
-  | LoadStopsFailed(string);
-
-let component = ReasonReact.reducerComponent("StopSelect");
+let component = ReasonReact.statelessComponent("StopSelect");
 
 let s = ReasonReact.string;
 
@@ -32,71 +19,29 @@ let nativeMenuItems = stops => {
   List.add(stopOptions, emptyOption);
 };
 
-let make =
-    (
-      ~stop: option(Stop.t),
-      ~route: option(Route.t),
-      ~direction: option(Direction.t),
-      ~stops: list(Stop.t),
-      ~setStops,
-      ~setStop,
-      _childern,
-    ) => {
+let make = (~stop: option(Stop.t), ~stops: list(Stop.t), ~setStop, _childern) => {
   ...component,
-  initialState: () => Success(stops),
-  reducer: (action, _state) =>
-    switch (action) {
-    | LoadStops(routeId, directionId) =>
-      ReasonReact.UpdateWithSideEffects(
-        Loading,
-        (
-          self =>
-            Js.Promise.(
-              ApiUri.loadStops(routeId, directionId)
-              |> then_(result =>
-                   switch (result) {
-                   | Ok(stops) => resolve(self.send(LoadedStops(stops)))
-                   | Error(err) => resolve(self.send(LoadStopsFailed(err)))
-                   }
-                 )
-              |> ignore
-            )
-        ),
-      )
-    | LoadedStops(stops) => ReasonReact.UpdateWithSideEffects(Success(stops), (_self => setStops(stops)))
-    | LoadStopsFailed(err) => ReasonReact.Update(Failure(err))
-    },
-  didMount: self =>
-    switch (route, direction) {
-    | (Some(r), Some(d)) => self.send(LoadStops(r.id, d.id))
-    | _ => ()
-    },
-  render: self =>
-    switch (self.state) {
-    | NotAsked => ReasonReact.null
-    | Loading => Util.typography("Loading stops...")
-    | Failure(err) => Util.typography("Something went wrong: " ++ err)
-    | Success(stops) =>
-      let stopChange = (evt, _el) => {
-        let stopId = ReactEvent.Form.target(evt)##value;
-        let stop = List.getBy(stops, stop => stop.id == stopId);
-        setStop(stop);
+  render: _self => {
+    let stopChange = (evt, _el) => {
+      let stopId = ReactEvent.Form.target(evt)##value;
+      let stop = List.getBy(stops, stop => stop.id == stopId);
+      setStop(stop);
+    };
+    let value =
+      switch (stop) {
+      | Some(stop) => `String(stop.id)
+      | None => `String("")
       };
-      let value =
-        switch (stop) {
-        | Some(stop) => `String(stop.id)
-        | None => `String("")
-        };
-      let select =
-        MaterialUi.(
-          if (Util.isMobile()) {
-            <Select native=true value onChange=stopChange> (nativeMenuItems(stops)) </Select>;
-          } else {
-            <Select native=false value onChange=stopChange> (menuItems(stops)) </Select>;
-          }
-        );
-      <form autoComplete="off">
-        MaterialUi.(<FormControl fullWidth=true> <InputLabel> (s("Stop")) </InputLabel> select </FormControl>)
-      </form>;
-    },
+    let select =
+      MaterialUi.(
+        if (Util.isMobile()) {
+          <Select native=true value onChange=stopChange> (nativeMenuItems(stops)) </Select>;
+        } else {
+          <Select native=false value onChange=stopChange> (menuItems(stops)) </Select>;
+        }
+      );
+    <form autoComplete="off">
+      MaterialUi.(<FormControl fullWidth=true> <InputLabel> (s("Stop")) </InputLabel> select </FormControl>)
+    </form>;
+  },
 };

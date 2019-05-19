@@ -24,14 +24,13 @@ type action =
 
 let updateIntervalSeconds = 30;
 
-let tickIntervalSeconds = 1;
+let tickIntervalSeconds = 10;
 
 let s = ReasonReact.string;
 
 let component = ReasonReact.reducerComponent("DepartureList");
 
 let renderDepartureLi = (departure: Departure.t, asOf) => {
-  Js.log(Departure.toString(departure));
   let timeStr =
     switch (Departure.parseLocalTime(departure.time)) {
     | Some(t) => Js.Date.toLocaleTimeString(t) ++ ", " ++ Util.distanceOfTimeInWords(asOf, t)

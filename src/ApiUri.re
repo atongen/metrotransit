@@ -25,32 +25,38 @@ let path =
 
 let toString = x => Printf.sprintf("%s://%s%s%s?%s", protocol, domain, basePath, path(x), params);
 
+let fetchUrl = url => {
+  Js.Promise.(Fetch.fetch(url) |> then_(Fetch.Response.text));
+};
+
+let getCachedUrl = (~expiration=60.0, url) => {
+  Cache.getSetExpiringItem(url, () => fetchUrl(url), expiration);
+};
+
 let loadProviders = () =>
-  Js.Promise.(Util.getCachedUrl(toString(ProvidersUri)) |> then_(jsonStr => Provider.ofJson(jsonStr) |> resolve));
+  Js.Promise.(getCachedUrl(toString(ProvidersUri)) |> then_(jsonStr => Provider.ofJson(jsonStr) |> resolve));
 
 let loadRoutes = () =>
-  Js.Promise.(Util.getCachedUrl(toString(RoutesUri)) |> then_(jsonStr => Route.ofJson(jsonStr) |> resolve));
+  Js.Promise.(getCachedUrl(toString(RoutesUri)) |> then_(jsonStr => Route.ofJson(jsonStr) |> resolve));
 
 let loadDirections = routeId =>
   Js.Promise.(
-    Util.getCachedUrl(toString(DirectionsUri(routeId)))
-    |> then_(jsonStr => Direction.ofJson(jsonStr) |> resolve)
+    getCachedUrl(toString(DirectionsUri(routeId))) |> then_(jsonStr => Direction.ofJson(jsonStr) |> resolve)
   );
 
 let loadStops = (routeId, directionId) =>
   Js.Promise.(
-    Util.getCachedUrl(toString(StopsUri(routeId, directionId)))
-    |> then_(jsonStr => Stop.ofJson(jsonStr) |> resolve)
+    getCachedUrl(toString(StopsUri(routeId, directionId))) |> then_(jsonStr => Stop.ofJson(jsonStr) |> resolve)
   );
 
 let loadTimepointDepartures = (routeId, directionId, stopId) =>
   Js.Promise.(
-    Util.getCachedUrl(toString(TimepointDeparturesUri(routeId, directionId, stopId)))
+    getCachedUrl(~expiration=5.0, toString(TimepointDeparturesUri(routeId, directionId, stopId)))
     |> then_(jsonStr => Departure.ofJson(jsonStr) |> resolve)
   );
 
 let loadVehicleLocations = routeId =>
   Js.Promise.(
-    Util.getCachedUrl(toString(VehicleLocationsUri(routeId)))
+    getCachedUrl(toString(VehicleLocationsUri(routeId)))
     |> then_(jsonStr => Location.ofJson(jsonStr) |> resolve)
   );

@@ -27,7 +27,7 @@ let nativeMenuItems = providers =>
 
 let make = (~provider: option(Provider.t), ~providers: list(Provider.t), ~setProvider, _childern) => {
   ...component,
-  render: self => {
+  render: _self => {
     let providerChange = (evt, _el) => {
       let providerId = ReactEvent.Form.target(evt)##value;
       let provider = List.getBy(providers, provider => provider.id == providerId);

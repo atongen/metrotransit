@@ -105,7 +105,7 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
             )
         ),
       )
-    | SetProviders(providers) => ReasonReact.Update({...state, providers, route: None, direction: None, stop: None})
+    | SetProviders(providers) => ReasonReact.Update({...state, providers})
     | SetProvider(provider) => ReasonReact.Update({...state, provider, route: None, direction: None, stop: None})
     | LoadRoutes =>
       ReasonReact.SideEffects(
@@ -123,11 +123,49 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
             )
         ),
       )
-    | SetRoutes(routes) => ReasonReact.Update({...state, routes, direction: None, stop: None})
-    | SetRoute(route) => ReasonReact.Update({...state, route, direction: None, stop: None})
-    | SetDirections(directions) => ReasonReact.Update({...state, directions, stop: None})
-    | SetDirection(direction) => ReasonReact.Update({...state, direction, stop: None})
-    | SetStops(stops) => ReasonReact.Update({...state, stops})
+    | SetRoutes(routes) => ReasonReact.Update({...state, routes})
+    | SetRoute(route) => ReasonReact.UpdateWithSideEffects({...state, route, direction: None, stop: None}, self => switch(self.state.route) {
+      | Some(route) => self.send(LoadDirections(route))
+      | None => ()
+    })
+    | LoadDirections(route) =>
+      ReasonReact.SideEffects(
+        (
+          self =>
+            Js.Promise.(
+              ApiUri.loadDirections(route.id)
+              |> then_(result =>
+                   switch (result) {
+                   | Ok(directions) => resolve(self.send(SetDirections(directions)))
+                   | Error(err) => resolve(Js.log("Loading directions failed: " ++ err))
+                   }
+                 )
+              |> ignore
+            )
+        ),
+      )
+    | SetDirections(directions) => ReasonReact.Update({...state, directions})
+    | SetDirection(direction) => ReasonReact.UpdateWithSideEffects({...state, direction, stop: None}, self => switch(self.state.route, self.state.direction) {
+      | (Some(route), Some(direction)) => self.send(LoadStops(route, direction))
+      | _e => ()
+    })
+    | LoadStops(route, direction) =>
+      ReasonReact.SideEffects(
+        (
+          self =>
+            Js.Promise.(
+              ApiUri.loadStops(route.id, direction.id)
+              |> then_(result =>
+                   switch (result) {
+                   | Ok(stops) => resolve(self.send(SetStops(stops)))
+                   | Error(err) => resolve(Js.log("Loading stops failed: " ++ err))
+                   }
+                 )
+              |> ignore
+            )
+        ),
+      )
+    | SetStops(stops) => ReasonReact.UpdateWithSideEffects({...state, stops}, self => ())
     | SetStop(stop) =>
       let maybeConfig =
         Config.maybeMake(
@@ -146,8 +184,11 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
     | SetExpanded(expanded) => ReasonReact.Update({...state, expanded})
     },
   initialState: () => makeState(config),
-  didMount: self => self.send(LoadProviders),
-  willReceiveProps: self => makeState(config),
+  didMount: self => {
+      self.send(LoadProviders);
+      self.send(LoadRoutes);
+  },
+  willReceiveProps: _self => makeState(config),
   render: self => {
     let setProvider = provider => self.ReasonReact.send(SetProvider(provider));
     let setRoute = route => self.send(SetRoute(route));
@@ -201,19 +242,8 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
               <Typography variant=`H6> (s("Select New Departure")) </Typography>
               <ProviderSelect provider=self.state.provider providers=self.state.providers setProvider />
               <RouteSelect route=self.state.route routes=self.state.routes provider=self.state.provider setRoute />
-              <DirectionSelect
-                direction=self.state.direction
-                directions=self.state.directions
-                route=self.state.route
-                setDirection
-              />
-              <StopSelect
-                stop=self.state.stop
-                stops=self.state.stops
-                route=self.state.route
-                direction=self.state.direction
-                setStop
-              />
+              <DirectionSelect direction=self.state.direction directions=self.state.directions setDirection />
+              <StopSelect stop=self.state.stop stops=self.state.stops setStop />
             </Grid>
           </Grid>
         </ExpansionPanelDetails>

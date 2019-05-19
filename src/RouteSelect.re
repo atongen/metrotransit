@@ -30,7 +30,7 @@ let nativeMenuItems = (routes, provider) => {
 
 let make = (~route: option(Route.t), ~routes: list(Route.t), ~provider: option(Provider.t), ~setRoute, _childern) => {
   ...component,
-  render: self => {
+  render: _self => {
     let routeChange = (evt, _el) => {
       let routeId = ReactEvent.Form.target(evt)##value;
       let route = List.getBy(routes, route => route.id == routeId);
