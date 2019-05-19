@@ -33,18 +33,6 @@ let component = ReasonReact.reducerComponent("ConfigSelect");
 
 let s = ReasonReact.string;
 
-let menuItems = configs =>
-  List.map(configs, (config: Config.t) =>
-    <MaterialUi.MenuItem key=config.id value=(`String(config.id))>
-      (s(Config.shortName(config)))
-    </MaterialUi.MenuItem>
-  );
-
-let nativeMenuItems = configs =>
-  List.map(configs, (config: Config.t) =>
-    <option key=config.id value=config.id> (s(Config.shortName(config))) </option>
-  );
-
 let makeState = (~providers=[], ~provider=None, maybeConfig: option(Config.t)) =>
   switch (maybeConfig) {
   | Some(config) => {
@@ -106,7 +94,14 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
         ),
       )
     | SetProviders(providers) => ReasonReact.Update({...state, providers})
-    | SetProvider(provider) => ReasonReact.Update({...state, provider, route: None, direction: None, stop: None})
+    | SetProvider(provider) => switch(provider, state.route) {
+      | (Some(provider), Some(route)) => if (provider.id == route.providerId) {
+        ReasonReact.Update({...state, provider: Some(provider)})
+      } else {
+        ReasonReact.Update({...state, provider: Some(provider), route: None, direction: None, stop: None})
+      }
+      | _e => ReasonReact.Update({...state, provider, route: None, direction: None, stop: None})
+    }
     | LoadRoutes =>
       ReasonReact.SideEffects(
         (
@@ -209,11 +204,23 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
       let provider = List.getBy(self.state.providers, provider => provider.id == providerId);
       self.ReasonReact.send(SetProvider(provider));
     };
-    let setRoute = route => self.send(SetRoute(route));
-    let setDirection = direction => self.send(SetDirection(direction));
-    let setStop = stop => self.send(SetStop(stop));
+    let routeOnChange = (evt, _el) => {
+      let routeId = ReactEvent.Form.target(evt)##value;
+      let route = List.getBy(self.state.routes, route => route.id == routeId);
+      self.ReasonReact.send(SetRoute(route));
+    };
+    let directionOnChange = (evt, _el) => {
+      let directionId = ReactEvent.Form.target(evt)##value;
+      let direction = List.getBy(self.state.directions, direction => direction.id == directionId);
+      self.ReasonReact.send(SetDirection(direction));
+    };
+    let stopOnChange = (evt, _el) => {
+      let stopId = ReactEvent.Form.target(evt)##value;
+      let stop = List.getBy(self.state.stops, stop => stop.id == stopId);
+      self.ReasonReact.send(SetStop(stop));
+    };
     let toggleExpanded = (_f, _e) => self.send(SetExpanded(! self.state.expanded));
-    let configChange = (evt, _el) => {
+    let configOnChange = (evt, _el) => {
       let configId = ReactEvent.Form.target(evt)##value;
       let maybeConfig = List.getBy(configs, config => config.id == configId);
       switch (maybeConfig) {
@@ -223,39 +230,26 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
       | None => ()
       };
     };
-    let configSelect =
-      if (List.length(configs) > 1) {
-        let value =
-          switch (config) {
-          | Some(c) => `String(c.id)
-          | None => `String("")
-          };
-        let select =
-          if (Util.isMobile()) {
-            <MaterialUi.Select native=true value onChange=configChange>
-              (nativeMenuItems(configs))
-            </MaterialUi.Select>;
-          } else {
-            <MaterialUi.Select native=false value onChange=configChange> (menuItems(configs)) </MaterialUi.Select>;
-          };
-        MaterialUi.(
-          <form autoComplete="off">
-            <FormControl fullWidth=true>
-              <InputLabel> (s("Previously Selected Departures")) </InputLabel>
-              select
-            </FormControl>
-          </form>
-        );
-      } else {
-        ReasonReact.null;
-      };
     let panelSummary = makePanelSummary(config);
+    let filteredRoutes =
+      switch (self.state.provider) {
+      | Some(provider) => List.keep(self.state.routes, (route: Route.t) => route.providerId == provider.id)
+      | None => self.state.routes
+      };
     MaterialUi.(
       <ExpansionPanel expanded=self.state.expanded onChange=toggleExpanded>
         panelSummary
         <ExpansionPanelDetails>
           <Grid container=true>
-            <Grid item=true xs=V12> configSelect </Grid>
+            <Grid item=true xs=V12>
+              <Selection
+                label="Previously Selected Departures"
+                item=config
+                items=configs
+                toSelectOption=Config.toSelectOption
+                onChange=configOnChange
+              />
+            </Grid>
             <Grid item=true xs=V12>
               <Typography variant=`H6> (s("Select New Departure")) </Typography>
               <Selection
@@ -267,9 +261,27 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
                 toSelectOption=Provider.toSelectOption
                 onChange=providerOnChange
               />
-              <RouteSelect route=self.state.route routes=self.state.routes provider=self.state.provider setRoute />
-              <DirectionSelect direction=self.state.direction directions=self.state.directions setDirection />
-              <StopSelect stop=self.state.stop stops=self.state.stops setStop />
+              <Selection
+                label="Route"
+                item=self.state.route
+                items=filteredRoutes
+                toSelectOption=Route.toSelectOption
+                onChange=routeOnChange
+              />
+              <Selection
+                label="Direction"
+                item=self.state.direction
+                items=self.state.directions
+                toSelectOption=Direction.toSelectOption
+                onChange=directionOnChange
+              />
+              <Selection
+                label="Stop"
+                item=self.state.stop
+                items=self.state.stops
+                toSelectOption=Stop.toSelectOption
+                onChange=stopOnChange
+              />
             </Grid>
           </Grid>
         </ExpansionPanelDetails>

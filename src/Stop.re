@@ -27,4 +27,4 @@ let ofJson = str => Util.parseJsonList(str, decodeStop);
 
 let toJson = pList => Util.encodeJsonList(pList, encodeStop);
 
-let toSelectOptions = stops => List.map(stop => SelectOption.make(stop.name, stop.id), stops);
+let toSelectOption = stop => SelectOption.make(stop.name, stop.id);

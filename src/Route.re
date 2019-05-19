@@ -42,4 +42,4 @@ let ofJson = str => Util.parseJsonList(str, decodeRoute);
 
 let toJson = pList => Util.encodeJsonList(pList, encodeRoute);
 
-let toSelectOptions = routes => List.map(route => SelectOption.make(route.name, route.id), routes);
+let toSelectOption = route => SelectOption.make(route.name, route.id);
