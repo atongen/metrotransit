@@ -109,6 +109,72 @@ let fromHash = hash => {
   };
 };
 
+let loadRoutesOr = routes =>
+  if (List.length(routes) == 0) {
+    ApiUri.loadRoutes();
+  } else {
+    Js.Promise.resolve(Result.Ok(routes));
+  };
+
+let loadDirectionsOr = (directions, routeId) =>
+  if (List.length(directions) == 0) {
+    ApiUri.loadDirections(routeId);
+  } else {
+    Js.Promise.resolve(Result.Ok(directions));
+  };
+
+let loadStopsOr = (stops, routeId, directionId) =>
+  if (List.length(stops) == 0) {
+    ApiUri.loadStops(routeId, directionId);
+  } else {
+    Js.Promise.resolve(Result.Ok(stops));
+  };
+
+let reload = config => {
+  let m = make;
+  Js.Promise.(
+    Result.(
+      loadRoutesOr(config.routes)
+      |> then_(routeResult =>
+           switch (routeResult) {
+           | Ok(routes) =>
+             let maybeRoute = List.getBy(routes, (route: Route.t) => route.id == config.route.id);
+             switch (maybeRoute) {
+             | Some(route) =>
+               loadDirectionsOr(config.directions, route.id)
+               |> then_(directionResult =>
+                    switch (directionResult) {
+                    | Ok(directions) =>
+                      let maybeDirection =
+                        List.getBy(directions, (direction: Direction.t) => direction.id == config.direction.id);
+                      switch (maybeDirection) {
+                      | Some(direction) =>
+                        loadStopsOr(config.stops, route.id, direction.id)
+                        |> then_(stopResult =>
+                             switch (stopResult) {
+                             | Ok(stops) =>
+                               let maybeStop = List.getBy(stops, (stop: Stop.t) => stop.id == config.stop.id);
+                               switch (maybeStop) {
+                               | Some(stop) => resolve(Ok(m(~routes, ~directions, ~stops, route, direction, stop)))
+                               | None => resolve(Error("stop id not found"))
+                               };
+                             | Error(_err) as e => resolve(e)
+                             }
+                           )
+                      | None => resolve(Error("direction id not found"))
+                      };
+                    | Error(_err) as e => resolve(e)
+                    }
+                  )
+             | None => resolve(Error("route id not found"))
+             };
+           | Error(_err) as e => resolve(e)
+           }
+         )
+    )
+  );
+};
+
 let routeIdKey = "ri";
 
 let routeNameKey = "rn";

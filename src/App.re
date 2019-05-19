@@ -2,6 +2,7 @@ open Belt;
 open Belt.Result;
 
 type action =
+  | LoadConfig(Config.t)
   | SetConfig(Config.t);
 
 type state = {
@@ -45,7 +46,7 @@ let urlChanged = (self, url) =>
         );
     } else {
         switch(ConfigStorage.getConfig()) {
-        | Some(config) => self.send(SetConfig(config));
+        | Some(config) => self.send(LoadConfig(config));
         | None => ()
         }
     };
@@ -64,6 +65,25 @@ let make = _children => {
   ...component,
   reducer: (action, state) =>
     switch (action) {
+    | LoadConfig(config) =>
+      ReasonReact.SideEffects(
+        (
+          self =>
+            Js.Promise.(
+              Config.reload(config)
+              |> then_(result =>
+                   switch (result) {
+                   | Ok(reloadedConfig) => resolve(self.send(SetConfig(reloadedConfig)))
+                   | Error(err) => {
+                       Js.log("Loading config failed: " ++ err);
+                       resolve(self.send(SetConfig(config)));
+                     }
+                   }
+                 )
+              |> ignore
+            )
+        ),
+      )
     | SetConfig(config) =>
       ReasonReact.UpdateWithSideEffects(
         {config: Some(config), configs: updateConfigs(state.configs, config)},
@@ -79,7 +99,7 @@ let make = _children => {
     urlChanged(self, url);
   },
   render: self => {
-    let setConfig = config => self.ReasonReact.send(SetConfig(config));
+    let setConfig = config => self.ReasonReact.send(LoadConfig(config));
     let departureList = switch(self.state.config) {
     | Some(config) => <DepartureList config />
     | None => ReasonReact.null

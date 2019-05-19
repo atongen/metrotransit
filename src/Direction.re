@@ -29,4 +29,4 @@ let ofJson = str => Util.parseJsonList(str, decodeDirection);
 
 let toJson = pList => Util.encodeJsonList(pList, encodeDirection);
 
-let toSelectOption = direction => SelectOption.make(direction.name, direction.id);
+let toSelectOption = direction => SelectOption.make(Util.capitalize(direction.name), direction.id);
