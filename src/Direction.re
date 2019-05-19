@@ -28,3 +28,6 @@ let encodeDirection = p =>
 let ofJson = str => Util.parseJsonList(str, decodeDirection);
 
 let toJson = pList => Util.encodeJsonList(pList, encodeDirection);
+
+let toSelectOptions = directions =>
+  List.map(direction => SelectOption.make(direction.name, direction.id), directions);

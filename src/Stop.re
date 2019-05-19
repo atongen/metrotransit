@@ -26,3 +26,5 @@ let encodeStop = p => Json.Encode.(object_([(stopNameKey, string(p.name)), (stop
 let ofJson = str => Util.parseJsonList(str, decodeStop);
 
 let toJson = pList => Util.encodeJsonList(pList, encodeStop);
+
+let toSelectOptions = stops => List.map(stop => SelectOption.make(stop.name, stop.id), stops);

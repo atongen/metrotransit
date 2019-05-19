@@ -45,11 +45,11 @@ let nativeMenuItems = configs =>
     <option key=config.id value=config.id> (s(Config.shortName(config))) </option>
   );
 
-let makeState = (maybeConfig: option(Config.t)) =>
+let makeState = (~providers=[], ~provider=None, maybeConfig: option(Config.t)) =>
   switch (maybeConfig) {
   | Some(config) => {
-      providers: [],
-      provider: None,
+      providers,
+      provider,
       routes: config.routes,
       route: Some(config.route),
       directions: config.directions,
@@ -59,8 +59,8 @@ let makeState = (maybeConfig: option(Config.t)) =>
       expanded: false,
     }
   | None => {
-      providers: [],
-      provider: None,
+      providers,
+      provider,
       routes: [],
       route: None,
       directions: [],
@@ -124,10 +124,17 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
         ),
       )
     | SetRoutes(routes) => ReasonReact.Update({...state, routes})
-    | SetRoute(route) => ReasonReact.UpdateWithSideEffects({...state, route, direction: None, stop: None}, self => switch(self.state.route) {
-      | Some(route) => self.send(LoadDirections(route))
-      | None => ()
-    })
+    | SetRoute(route) =>
+      ReasonReact.UpdateWithSideEffects(
+        {...state, route, direction: None, stop: None},
+        (
+          self =>
+            switch (self.state.route) {
+            | Some(route) => self.send(LoadDirections(route))
+            | None => ()
+            }
+        ),
+      )
     | LoadDirections(route) =>
       ReasonReact.SideEffects(
         (
@@ -145,10 +152,17 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
         ),
       )
     | SetDirections(directions) => ReasonReact.Update({...state, directions})
-    | SetDirection(direction) => ReasonReact.UpdateWithSideEffects({...state, direction, stop: None}, self => switch(self.state.route, self.state.direction) {
-      | (Some(route), Some(direction)) => self.send(LoadStops(route, direction))
-      | _e => ()
-    })
+    | SetDirection(direction) =>
+      ReasonReact.UpdateWithSideEffects(
+        {...state, direction, stop: None},
+        (
+          self =>
+            switch (self.state.route, self.state.direction) {
+            | (Some(route), Some(direction)) => self.send(LoadStops(route, direction))
+            | _e => ()
+            }
+        ),
+      )
     | LoadStops(route, direction) =>
       ReasonReact.SideEffects(
         (
@@ -165,7 +179,7 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
             )
         ),
       )
-    | SetStops(stops) => ReasonReact.UpdateWithSideEffects({...state, stops}, self => ())
+    | SetStops(stops) => ReasonReact.Update({...state, stops})
     | SetStop(stop) =>
       let maybeConfig =
         Config.maybeMake(
@@ -185,12 +199,16 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
     },
   initialState: () => makeState(config),
   didMount: self => {
-      self.send(LoadProviders);
-      self.send(LoadRoutes);
+    self.send(LoadProviders);
+    self.send(LoadRoutes);
   },
-  willReceiveProps: _self => makeState(config),
+  willReceiveProps: self => makeState(~providers=self.state.providers, ~provider=self.state.provider, config),
   render: self => {
-    let setProvider = provider => self.ReasonReact.send(SetProvider(provider));
+    let providerOnChange = (evt, _el) => {
+      let providerId = ReactEvent.Form.target(evt)##value;
+      let provider = List.getBy(self.state.providers, provider => provider.id == providerId);
+      self.ReasonReact.send(SetProvider(provider));
+    };
     let setRoute = route => self.send(SetRoute(route));
     let setDirection = direction => self.send(SetDirection(direction));
     let setStop = stop => self.send(SetStop(stop));
@@ -240,7 +258,15 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
             <Grid item=true xs=V12> configSelect </Grid>
             <Grid item=true xs=V12>
               <Typography variant=`H6> (s("Select New Departure")) </Typography>
-              <ProviderSelect provider=self.state.provider providers=self.state.providers setProvider />
+              <Selection
+                emptyDisplayName="All"
+                emptyDisabled=false
+                label="Provider"
+                item=self.state.provider
+                items=self.state.providers
+                toSelectOption=Provider.toSelectOption
+                onChange=providerOnChange
+              />
               <RouteSelect route=self.state.route routes=self.state.routes provider=self.state.provider setRoute />
               <DirectionSelect direction=self.state.direction directions=self.state.directions setDirection />
               <StopSelect stop=self.state.stop stops=self.state.stops setStop />

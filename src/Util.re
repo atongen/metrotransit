@@ -152,3 +152,6 @@ let typography = (~variant=`Body1, s) => MaterialUi.(<Typography variant> (Reaso
 
 let isMobile = () =>
     (! Js.Types.(test(orientation, Undefined))) || Js.String.includes("IEMobile", userAgent);
+
+/* capture this once */
+let amIMobile = isMobile();

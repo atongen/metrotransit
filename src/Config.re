@@ -158,3 +158,5 @@ let toJson = c => Util.encodeJson(c, encodeConfig);
 let ofJsonList = str => Util.parseJsonList(str, decodeConfig);
 
 let toJsonList = cList => Util.encodeJsonList(cList, encodeConfig);
+
+let toSelectOptions = configs => List.map(configs, config => SelectOption.make(shortName(config), config.id));

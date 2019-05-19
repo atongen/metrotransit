@@ -20,3 +20,5 @@ let encodeProvider = p =>
 let ofJson = str => Util.parseJsonList(str, decodeProvider);
 
 let toJson = pList => Util.encodeJsonList(pList, encodeProvider);
+
+let toSelectOption = provider => SelectOption.make(provider.name, provider.id);
