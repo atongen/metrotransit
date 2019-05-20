@@ -94,14 +94,17 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
         ),
       )
     | SetProviders(providers) => ReasonReact.Update({...state, providers})
-    | SetProvider(provider) => switch(provider, state.route) {
-      | (Some(provider), Some(route)) => if (provider.id == route.providerId) {
-        ReasonReact.Update({...state, provider: Some(provider)})
-      } else {
-        ReasonReact.Update({...state, provider: Some(provider), route: None, direction: None, stop: None})
-      }
+    | SetProvider(provider) =>
+      switch (provider, state.route) {
+      | (Some(provider), Some(route)) =>
+        if (provider.id == route.providerId) {
+          ReasonReact.Update({...state, provider: Some(provider)});
+        } else {
+          ReasonReact.Update({...state, provider: Some(provider), route: None, direction: None, stop: None});
+        }
+      | (None, Some(_route)) => ReasonReact.Update({...state, provider})
       | _e => ReasonReact.Update({...state, provider, route: None, direction: None, stop: None})
-    }
+      }
     | LoadRoutes =>
       ReasonReact.SideEffects(
         (
@@ -120,8 +123,13 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
       )
     | SetRoutes(routes) => ReasonReact.Update({...state, routes})
     | SetRoute(route) =>
+      let provider =
+        switch (route) {
+        | Some(route) => List.getBy(state.providers, provider => provider.id == route.providerId)
+        | None => state.provider
+        };
       ReasonReact.UpdateWithSideEffects(
-        {...state, route, direction: None, stop: None},
+        {...state, provider, route, direction: None, stop: None},
         (
           self =>
             switch (self.state.route) {
@@ -129,7 +137,7 @@ let make = (~config: option(Config.t), ~configs: list(Config.t), ~setConfig, _ch
             | None => ()
             }
         ),
-      )
+      );
     | LoadDirections(route) =>
       ReasonReact.SideEffects(
         (
