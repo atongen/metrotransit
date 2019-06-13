@@ -18,6 +18,7 @@ let content =
         <Paper style=paperStyle>
           <Typography variant=`H4> (ReasonReact.string("Nextrip - Metrotransit")) </Typography>
           <App />
+          <Footer />
         </Paper>
       </CssBaseline>
     )
